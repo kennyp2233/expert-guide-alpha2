@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
-import { useAuthStore } from '../stores/useAuthStore';
+import { useAuthStore } from '@/modules/auth/stores/useAuthStore';
 import { useToast } from '@/shared/hooks/useToast';
 import { LoginFormValues, loginSchema } from '@/modules/auth/schemas/authSchemas';
 
@@ -61,9 +61,9 @@ export function LoginForm() {
     };
 
     return (
-        <Card className="w-full max-w-md mx-auto">
+        <Card className="w-full max-w-md mx-auto shadow-md">
             <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl font-bold">Iniciar Sesión</CardTitle>
+                <CardTitle className="text-xl font-bold">Iniciar Sesión</CardTitle>
                 <CardDescription>
                     Ingrese sus credenciales para acceder a su cuenta
                 </CardDescription>
@@ -77,7 +77,6 @@ export function LoginForm() {
                             type="email"
                             placeholder="ejemplo@correo.com"
                             {...register('email')}
-                            className={errors.email ? 'border-destructive' : ''}
                             aria-invalid={!!errors.email}
                         />
                         {errors.email && (
@@ -85,14 +84,21 @@ export function LoginForm() {
                         )}
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="password">Contraseña</Label>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="password">Contraseña</Label>
+                            <Link
+                                href="/auth/forgot-password"
+                                className="text-xs text-primary hover:underline"
+                            >
+                                ¿Olvidó su contraseña?
+                            </Link>
+                        </div>
                         <div className="relative">
                             <Input
                                 id="password"
                                 type={showPassword ? 'text' : 'password'}
                                 placeholder="••••••••"
                                 {...register('password')}
-                                className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
                                 aria-invalid={!!errors.password}
                             />
                             <button
@@ -109,14 +115,6 @@ export function LoginForm() {
                             </p>
                         )}
                     </div>
-                    <div className="flex items-center justify-end">
-                        <Link
-                            href="/auth/forgot-password"
-                            className="text-sm text-primary hover:underline"
-                        >
-                            ¿Olvidó su contraseña?
-                        </Link>
-                    </div>
                 </CardContent>
                 <CardFooter className="flex flex-col space-y-4">
                     <Button type="submit" className="w-full" disabled={isLoading}>
@@ -128,12 +126,12 @@ export function LoginForm() {
                             'Iniciar Sesión'
                         )}
                     </Button>
-                    <div className="text-center text-sm">
+                    <p className="text-center text-sm">
                         ¿No tiene una cuenta?{' '}
                         <Link href="/auth/register/client" className="text-primary hover:underline">
                             Regístrese aquí
                         </Link>
-                    </div>
+                    </p>
                 </CardFooter>
             </form>
         </Card>

@@ -7,46 +7,66 @@ import { LoginForm } from '@/modules/auth/components/LoginForm';
 export default function LoginPage() {
     return (
         <AuthGuard requireAuth={false}>
-            <div className="flex min-h-screen flex-col">
-                <header className="flex h-16 items-center border-b px-4">
-                    <div className="flex items-center gap-2 font-bold text-xl">
+            <div className="flex min-h-screen flex-col bg-muted/5">
+                {/* Header con logo */}
+                <header className="flex h-16 items-center border-b px-4 md:px-6 bg-background">
+                    <div className="flex items-center gap-2 font-semibold text-xl">
                         <Rocket className="h-6 w-6 text-primary" />
                         <span className="text-primary">EHC ERP</span>
                     </div>
                 </header>
 
+                {/* Contenido principal con diseño responsive */}
                 <div className="grid flex-1 md:grid-cols-2">
                     {/* Formulario */}
-                    <div className="flex items-center justify-center p-4 md:p-8">
+                    <div className="flex items-center justify-center p-4 md:p-6">
                         <div className="w-full max-w-md">
+                            <div className="mb-6 md:hidden text-center">
+                                <h1 className="text-2xl font-bold">Bienvenido al Sistema</h1>
+                                <p className="mt-2 text-muted-foreground">
+                                    Inicie sesión para continuar
+                                </p>
+                            </div>
                             <LoginForm />
                         </div>
                     </div>
 
-                    {/* Imagen o banner lateral */}
-                    <div className="hidden bg-gradient-to-r from-primary/10 to-background md:flex md:items-center md:justify-center">
-                        <div className="relative h-full w-full max-w-2xl p-8">
-                            <div className="absolute inset-0 bg-primary/5 rounded-xl"></div>
-                            <div className="relative z-10 flex flex-col items-center justify-center h-full p-8 text-center space-y-6">
-                                <div className="flex items-center gap-2 font-bold text-3xl text-primary">
-                                    <Rocket className="h-10 w-10" />
-                                    <span>EHC ERP</span>
+                    {/* Banner lateral (solo en pantallas medianas y grandes) */}
+                    <div className="hidden md:flex md:flex-col md:justify-center bg-gradient-to-br from-primary/10 to-background p-4 md:p-6">
+                        <div className="max-w-md mx-auto space-y-6">
+                            <div className="flex items-center justify-center">
+                                <div className="p-2 bg-primary/10 rounded-full">
+                                    <Rocket className="h-10 w-10 text-primary" />
                                 </div>
-                                <h2 className="text-2xl font-bold">Plataforma especializada en floricultura</h2>
-                                <p className="text-muted-foreground max-w-md">
-                                    Gestión logística, documentación certificada y fidelización de clientes en tiempo real.
+                            </div>
+                            <div className="text-center space-y-2">
+                                <h1 className="text-3xl font-bold">Plataforma de Gestión Florícola</h1>
+                                <p className="text-muted-foreground">
+                                    Gestión eficiente de su producción, logística y ventas
                                 </p>
-                                {/* Ilustración decorativa */}
-                                <div className="mt-6 w-full max-w-md p-4 bg-card rounded-lg shadow-md border">
-                                    <div className="aspect-video w-full bg-primary/10 rounded-md flex items-center justify-center">
-                                        <Rocket className="h-16 w-16 text-primary opacity-50" />
-                                    </div>
-                                    <div className="mt-4 space-y-2">
-                                        <div className="h-4 w-3/4 bg-primary/20 rounded-full"></div>
-                                        <div className="h-4 w-full bg-primary/10 rounded-full"></div>
-                                        <div className="h-4 w-5/6 bg-primary/20 rounded-full"></div>
-                                    </div>
-                                </div>
+                            </div>
+
+                            {/* Características destacadas */}
+                            <div className="bg-card shadow-sm rounded-lg p-4 space-y-4">
+                                <h2 className="font-semibold text-center">Características principales</h2>
+                                <ul className="space-y-2">
+                                    <li className="flex items-center">
+                                        <div className="h-2 w-2 rounded-full bg-primary mr-2"></div>
+                                        <span>Gestión integrada de la cadena de suministro</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <div className="h-2 w-2 rounded-full bg-primary mr-2"></div>
+                                        <span>Seguimiento de producción en tiempo real</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <div className="h-2 w-2 rounded-full bg-primary mr-2"></div>
+                                        <span>Control de calidad y certificaciones</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <div className="h-2 w-2 rounded-full bg-primary mr-2"></div>
+                                        <span>Exportación simplificada y documentación</span>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
