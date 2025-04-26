@@ -1,103 +1,250 @@
-import Image from "next/image";
+// app/page.tsx
+'use client';
 
-export default function Home() {
+import Link from 'next/link';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Sheet, SheetTrigger, SheetContent } from '@/components/ui/sheet';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Truck, Users, FileCheck, Rocket, ChevronRight, Menu } from 'lucide-react';
+
+export default function HomePage() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-1">
+        <Hero />
+        <Features />
+        <Process />
+        <CTA />
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      <Footer />
     </div>
+  );
+}
+
+function Navbar() {
+  return (
+    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+
+      <nav className="flex h-16 items-center justify-between">
+        <Link href="/" className="flex items-center gap-2 font-bold text-2xl">
+          <Rocket className="h-6 w-6 text-primary" />
+          <span className="text-primary">EHC ERP</span>
+        </Link>
+
+        <div className="hidden lg:flex items-center gap-8">
+          <Link href="#features" className="text-sm font-medium transition-colors hover:text-primary">
+            Características
+          </Link>
+          <Link href="#process" className="text-sm font-medium transition-colors hover:text-primary">
+            Proceso
+          </Link>
+          <Link href="/auth/login" className="text-sm font-medium transition-colors hover:text-primary">
+            Acceso Clientes
+          </Link>
+          <Button asChild className="bg-primary hover:bg-primary/90">
+            <Link href="/auth/register/client">Prueba Gratis</Link>
+          </Button>
+        </div>
+
+        <Sheet>
+          <SheetTrigger className="lg:hidden">
+            <Menu className="h-6 w-6" />
+          </SheetTrigger>
+          <SheetContent side="right">
+            <div className="flex flex-col gap-4 pt-6">
+              <Link href="#features" className="py-2 font-medium">
+                Características
+              </Link>
+              <Link href="#process" className="py-2 font-medium">
+                Proceso
+              </Link>
+              <Link href="/auth/login" className="py-2 font-medium">
+                Acceso Clientes
+              </Link>
+              <Button asChild className="w-full mt-4">
+                <Link href="/auth/register/client">Prueba Gratis</Link>
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </nav>
+    </header>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="bg-gradient-to-b from-primary/10 to-background py-20">
+      <div className="flex flex-col lg:flex-row items-center gap-16">
+        <div className="flex-1 space-y-8">
+          <Badge variant="secondary" className="text-sm px-4 py-1">
+            Plataforma especializada en floricultura
+          </Badge>
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+            Optimiza tu exportación de flores con
+            <span className="text-primary"> inteligencia operativa</span>
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            Integración completa para gestión logística, documentación certificada y
+            fidelización de clientes en tiempo real.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
+              <Link href="/auth/register/client">Comenzar ahora</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href="#features" className="flex items-center gap-2">
+                Ver características <ChevronRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex-1">
+          <Image
+            src="/hero-dashboard.png"
+            alt="Dashboard de gestión EHC ERP"
+            width={800}
+            height={600}
+            className="rounded-xl shadow-2xl border"
+            priority
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Features() {
+  const features = [
+    {
+      icon: Truck,
+      title: "Seguimiento Logístico",
+      description: "Monitoreo en tiempo real de AWB/HAWB con actualizaciones automáticas"
+    },
+    {
+      icon: FileCheck,
+      title: "Gestión Documental",
+      description: "Validación inteligente de certificados y documentos legales"
+    },
+    {
+      icon: Users,
+      title: "Clientes VIP",
+      description: "Sistema de puntos integrado y programa de fidelización"
+    }
+  ];
+
+  return (
+    <section id="features" className="py-20 bg-secondary/10">
+      <div className="mx-auto max-w-2xl text-center mb-16">
+        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          Potencia tu operación exportadora
+        </h2>
+        <p className="mt-4 text-lg text-muted-foreground">
+          Soluciones especializadas para los desafíos únicos de la industria floral
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-8">
+        {features.map((feature) => (
+          <Card key={feature.title} className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <div className="mb-4 flex justify-center">
+                <feature.icon className="h-12 w-12 text-primary" />
+              </div>
+              <CardTitle>{feature.title}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>{feature.description}</CardDescription>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Process() {
+  const steps = [
+    { title: "Registro Express", description: "Creación de cuenta en menos de 1 minuto" },
+    { title: "Validación Automática", description: "Subida y verificación de documentos" },
+    { title: "Integración Logística", description: "Conexión con tus proveedores actuales" },
+    { title: "Operación Activa", description: "Comienza a gestionar tus exportaciones" }
+  ];
+
+  return (
+    <section id="process" className="py-20">
+      <div className="mx-auto max-w-4xl">
+        <h2 className="text-3xl font-bold text-center mb-16">
+          Implementación en 4 pasos
+        </h2>
+
+        <div className="relative">
+          <div className="absolute left-1/2 h-full w-0.5 bg-border -translate-x-1/2 hidden lg:block" />
+
+          <div className="grid lg:grid-cols-4 gap-8">
+            {steps.map((step, index) => (
+              <div key={step.title} className="relative">
+                <div className="flex flex-col items-center text-center">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white font-bold">
+                    {index + 1}
+                  </div>
+                  <h3 className="text-lg font-semibold">{step.title}</h3>
+                  <p className="text-sm text-muted-foreground">{step.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CTA() {
+  return (
+    <section className="bg-primary text-primary-foreground py-20">
+      <div className="rounded-xl bg-gradient-to-r from-primary/90 to-primary/70 p-8 shadow-2xl">
+        <div className="flex flex-col items-center text-center gap-6">
+          <h2 className="text-3xl font-bold sm:text-4xl">
+            ¿Listo para transformar tu operación?
+          </h2>
+          <p className="max-w-2xl text-lg">
+            Únete a las principales empresas florícolas que ya optimizan sus procesos
+          </p>
+          <Button
+            asChild
+            size="lg"
+            variant="secondary"
+            className="mt-4 hover:bg-background"
+          >
+            <Link href="/auth/register/client" className="flex items-center gap-2">
+              Comenzar Ahora <ChevronRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="border-t">
+      <div className="py-12 flex flex-col items-center gap-8 text-center">
+        <div className="flex items-center gap-2">
+          <Rocket className="h-6 w-6 text-primary" />
+          <span className="font-bold">EHC ERP</span>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          © {new Date().getFullYear()} Experts Handling Cargo. Todos los derechos reservados.
+        </div>
+      </div>
+    </footer>
   );
 }
