@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { Rocket } from 'lucide-react';
 import { AuthGuard } from '@/modules/auth/components/AuthGuard';
 import { LoginForm } from '@/modules/auth/components/LoginForm';
@@ -37,14 +36,16 @@ export default function LoginPage() {
                                 <p className="text-muted-foreground max-w-md">
                                     Gestión logística, documentación certificada y fidelización de clientes en tiempo real.
                                 </p>
-                                {/* Aquí puedes añadir una imagen ilustrativa */}
-                                <div className="mt-4 relative w-full h-64">
-                                    <Image
-                                        src="/hero-dashboard.png"
-                                        alt="Dashboard de gestión EHC ERP"
-                                        fill
-                                        className="object-contain rounded-lg shadow-lg"
-                                    />
+                                {/* Ilustración decorativa */}
+                                <div className="mt-6 w-full max-w-md p-4 bg-card rounded-lg shadow-md border">
+                                    <div className="aspect-video w-full bg-primary/10 rounded-md flex items-center justify-center">
+                                        <Rocket className="h-16 w-16 text-primary opacity-50" />
+                                    </div>
+                                    <div className="mt-4 space-y-2">
+                                        <div className="h-4 w-3/4 bg-primary/20 rounded-full"></div>
+                                        <div className="h-4 w-full bg-primary/10 rounded-full"></div>
+                                        <div className="h-4 w-5/6 bg-primary/20 rounded-full"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -17,16 +17,16 @@ interface AuthState {
     error: string | null;
 
     // Actions
-    login: (credentials: LoginRequest) => Promise<void>;
+    login: (credentials: LoginRequest) => Promise<boolean>;
     logout: () => void;
-    registerClient: (userData: RegisterClientRequest) => Promise<void>;
-    registerFarm: (farmData: RegisterFarmRequest) => Promise<void>;
+    registerClient: (userData: RegisterClientRequest) => Promise<boolean>;
+    registerFarm: (farmData: RegisterFarmRequest) => Promise<boolean>;
     clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             user: null,
             accessToken: null,
             isAuthenticated: false,
@@ -43,6 +43,7 @@ export const useAuthStore = create<AuthState>()(
                         isAuthenticated: true,
                         isLoading: false,
                     });
+                    return true;
                 } catch (error) {
                     const axiosError = error as AxiosError<{ message: string | string[] }>;
                     const errorMessage = typeof axiosError.response?.data.message === 'string'
@@ -55,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
                         isLoading: false,
                         error: errorMessage
                     });
+                    return false;
                 }
             },
 
@@ -72,7 +74,7 @@ export const useAuthStore = create<AuthState>()(
                 try {
                     await authService.registerClient(userData);
                     set({ isLoading: false });
-                    // No establecemos isAuthenticated aquí - esperar a que el usuario haga login
+                    return true;
                 } catch (error) {
                     const axiosError = error as AxiosError<{ message: string | string[] }>;
                     const errorMessage = typeof axiosError.response?.data.message === 'string'
@@ -85,6 +87,7 @@ export const useAuthStore = create<AuthState>()(
                         isLoading: false,
                         error: errorMessage
                     });
+                    return false;
                 }
             },
 
@@ -93,7 +96,7 @@ export const useAuthStore = create<AuthState>()(
                 try {
                     await authService.registerFarm(farmData);
                     set({ isLoading: false });
-                    // No establecemos isAuthenticated aquí - esperar a que el usuario haga login
+                    return true;
                 } catch (error) {
                     const axiosError = error as AxiosError<{ message: string | string[] }>;
                     const errorMessage = typeof axiosError.response?.data.message === 'string'
@@ -106,6 +109,7 @@ export const useAuthStore = create<AuthState>()(
                         isLoading: false,
                         error: errorMessage
                     });
+                    return false;
                 }
             },
 

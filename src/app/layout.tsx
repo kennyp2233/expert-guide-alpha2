@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/shared/components/ToastProvider";
+import { ThemeProvider } from "@/shared/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,15 +25,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* Providers */}
-        <ToastProvider />
-
-        {/* Contenido principal */}
-        {children}
+        <ThemeProvider
+          defaultTheme="system"
+          storageKey="ehc-erp-theme"
+        >
+          <ToastProvider />
+          {/* Contenido principal */}
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

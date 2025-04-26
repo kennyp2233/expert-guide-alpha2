@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
@@ -54,24 +54,25 @@ export function RegisterClientForm() {
         },
     });
 
-    const onSubmit = async (data: RegisterClientFormValues) => {
-        try {
-            // Eliminar campos no necesarios para la API
-            const { passwordConfirm, terms, ...requestData } = data;
+    // Manejar errores del store
+    useEffect(() => {
+        if (error) {
+            toast(error, 'error');
+            clearError();
+        }
+    }, [error, toast, clearError]);
 
-            await registerClient(requestData);
+    const onSubmit = async (data: RegisterClientFormValues) => {
+        // Eliminar campos no necesarios para la API
+        const { passwordConfirm, terms, ...requestData } = data;
+
+        const success = await registerClient(requestData);
+
+        if (success) {
             toast('Registro exitoso, ahora puede iniciar sesión', 'success');
             router.push('/auth/login');
-        } catch (error) {
-            // Los errores ya son manejados por el store
         }
     };
-
-    // Mostrar mensaje de error del store
-    if (error) {
-        toast(error, 'error');
-        clearError();
-    }
 
     return (
         <Card className="w-full max-w-lg mx-auto">
@@ -92,6 +93,7 @@ export function RegisterClientForm() {
                                 placeholder="Su nombre completo"
                                 {...register('nombre')}
                                 className={errors.nombre ? 'border-destructive' : ''}
+                                aria-invalid={!!errors.nombre}
                             />
                             {errors.nombre && (
                                 <p className="text-sm text-destructive">{errors.nombre.message}</p>
@@ -105,6 +107,7 @@ export function RegisterClientForm() {
                                 placeholder="ejemplo@correo.com"
                                 {...register('email')}
                                 className={errors.email ? 'border-destructive' : ''}
+                                aria-invalid={!!errors.email}
                             />
                             {errors.email && (
                                 <p className="text-sm text-destructive">{errors.email.message}</p>
@@ -123,6 +126,7 @@ export function RegisterClientForm() {
                                     placeholder="••••••••"
                                     {...register('password')}
                                     className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
+                                    aria-invalid={!!errors.password}
                                 />
                                 <button
                                     type="button"
@@ -144,6 +148,7 @@ export function RegisterClientForm() {
                                 placeholder="••••••••"
                                 {...register('passwordConfirm')}
                                 className={errors.passwordConfirm ? 'border-destructive' : ''}
+                                aria-invalid={!!errors.passwordConfirm}
                             />
                             {errors.passwordConfirm && (
                                 <p className="text-sm text-destructive">{errors.passwordConfirm.message}</p>
@@ -161,6 +166,7 @@ export function RegisterClientForm() {
                                 placeholder="+593 xxxxxxxxx"
                                 {...register('telefono')}
                                 className={errors.telefono ? 'border-destructive' : ''}
+                                aria-invalid={!!errors.telefono}
                             />
                             {errors.telefono && (
                                 <p className="text-sm text-destructive">{errors.telefono.message}</p>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -43,21 +43,22 @@ export function LoginForm() {
         },
     });
 
+    // Manejar errores del store
+    useEffect(() => {
+        if (error) {
+            toast(error, 'error');
+            clearError();
+        }
+    }, [error, toast, clearError]);
+
     const onSubmit = async (data: LoginFormValues) => {
-        try {
-            await login(data);
+        const success = await login(data);
+
+        if (success) {
             toast('Sesión iniciada correctamente', 'success');
             router.push(returnUrl);
-        } catch (error) {
-            // Los errores ya son manejados por el store
         }
     };
-
-    // Mostrar mensaje de error del store
-    if (error) {
-        toast(error, 'error');
-        clearError();
-    }
 
     return (
         <Card className="w-full max-w-md mx-auto">
@@ -77,6 +78,7 @@ export function LoginForm() {
                             placeholder="ejemplo@correo.com"
                             {...register('email')}
                             className={errors.email ? 'border-destructive' : ''}
+                            aria-invalid={!!errors.email}
                         />
                         {errors.email && (
                             <p className="text-sm text-destructive">{errors.email.message}</p>
@@ -91,6 +93,7 @@ export function LoginForm() {
                                 placeholder="••••••••"
                                 {...register('password')}
                                 className={errors.password ? 'border-destructive pr-10' : 'pr-10'}
+                                aria-invalid={!!errors.password}
                             />
                             <button
                                 type="button"

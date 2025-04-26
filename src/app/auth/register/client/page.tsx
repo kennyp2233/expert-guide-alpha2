@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/link';
 import Link from 'next/link';
 import { Rocket, ArrowLeft } from 'lucide-react';
 import { AuthGuard } from '@/modules/auth/components/AuthGuard';
