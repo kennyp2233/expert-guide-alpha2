@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
     Rocket,
     Home,
@@ -80,8 +80,8 @@ function SidebarNav() {
                         key={index}
                         href={item.href}
                         className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all ${isActive
-                                ? 'bg-primary text-primary-foreground'
-                                : 'hover:bg-accent hover:text-accent-foreground'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'hover:bg-accent hover:text-accent-foreground'
                             }`}
                     >
                         <item.icon className="h-4 w-4" />
@@ -99,7 +99,14 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }>) {
     const [open, setOpen] = useState(false);
-    const { user, logout } = useAuthStore();
+    const { user, logout, isAuthenticated } = useAuthStore();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            router.push('/auth/login');
+        }
+    }, [isAuthenticated]);
 
     return (
         <AuthGuard>
@@ -147,7 +154,7 @@ export default function DashboardLayout({
                                     <div className="bg-primary text-primary-foreground rounded-full p-1">
                                         <User className="h-4 w-4" />
                                     </div>
-                                    <div className="text-sm font-medium">{user?.username || 'Usuario'}</div>
+                                    <div className="text-sm font-medium">{user?.usuario || 'Usuario'}</div>
                                 </div>
                                 <ThemeToggle />
                             </div>

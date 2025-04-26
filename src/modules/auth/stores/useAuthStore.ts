@@ -1,6 +1,6 @@
 // src/modules/auth/stores/useAuthStore.ts
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, devtools } from 'zustand/middleware';
 import { authService } from '@/modules/auth/services/authService';
 import {
     LoginRequest,
@@ -10,129 +10,160 @@ import {
 } from '@/types/auth';
 import { User } from '@/types/user';
 
-interface AuthState {
+type AuthState = {
     user: User | null;
     accessToken: string | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;
 
-    // Actions
+    // Flag para indicar que ya se rehidrató del storage
+    hasHydrated: boolean;
+
+    // Helpers internos
+    setLoading: (loading: boolean) => void;
+    setError: (message: string | null) => void;
+};
+
+type AuthActions = {
     login: (credentials: LoginRequest) => Promise<boolean>;
     logout: () => void;
-    registerClient: (clientData: RegisterClientRequest) => Promise<boolean>;
-    registerFarm: (farmData: RegisterFarmRequest) => Promise<boolean>;
+    registerClient: (data: RegisterClientRequest) => Promise<boolean>;
+    registerFarm: (data: RegisterFarmRequest) => Promise<boolean>;
     getProfile: () => Promise<void>;
     clearError: () => void;
-}
+};
 
-export const useAuthStore = create<AuthState>()(
-    persist(
-        (set, get) => ({
-            user: null,
-            accessToken: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
+const initialState: AuthState = {
+    user: null,
+    accessToken: null,
+    isAuthenticated: false,
+    isLoading: false,
+    error: null,
+    hasHydrated: false,
+    setLoading: () => { },
+    setError: () => { },
+};
 
-            login: async (credentials: LoginRequest) => {
-                set({ isLoading: true, error: null });
-                try {
-                    const { user, access_token }: LoginResponse = await authService.login(credentials);
+export const useAuthStore = create<AuthState & AuthActions>()(
+    devtools(
+        persist(
+            (set, get) => ({
+                ...initialState,
 
-                    set({
-                        user: {
-                            ...user,
-                            usuario: user.username,
-                            activo: true
-                        },
-                        accessToken: access_token,
-                        isAuthenticated: true,
-                        isLoading: false,
-                    });
+                // Helpers
+                setLoading: (loading: boolean) => set({ isLoading: loading }),
+                setError: (message: string | null) => set({ error: message }),
 
-                    return true;
-                } catch (error) {
-                    set({
-                        isLoading: false,
-                        error: error instanceof Error ? error.message : 'Error al iniciar sesión',
-                    });
-                    return false;
-                }
-            },
+                login: async (credentials) => {
+                    set({ isLoading: true, error: null });
+                    try {
+                        const { user, access_token }: LoginResponse =
+                            await authService.login(credentials);
 
-            logout: () => {
-                set({
-                    user: null,
-                    accessToken: null,
-                    isAuthenticated: false,
-                    error: null,
-                });
-            },
+                        set({
+                            user: { ...user, usuario: user.username, activo: true },
+                            accessToken: access_token,
+                            isAuthenticated: true,
+                        });
+                        return true;
+                    } catch (err) {
+                        const message =
+                            err instanceof Error ? err.message : 'Error al iniciar sesión';
+                        set({ error: message });
+                        return false;
+                    } finally {
+                        set({ isLoading: false });
+                    }
+                },
 
-            registerClient: async (clientData: RegisterClientRequest) => {
-                set({ isLoading: true, error: null });
-                try {
-                    await authService.registerClient(clientData);
-                    set({ isLoading: false });
-                    return true;
-                } catch (error) {
-                    set({
-                        isLoading: false,
-                        error: error instanceof Error ? error.message : 'Error al registrar cliente',
-                    });
-                    return false;
-                }
-            },
+                logout: () => {
+                    set((state) => ({
+                        // preservamos hasHydrated para no volver a mostrar spinner
+                        hasHydrated: state.hasHydrated,
 
-            registerFarm: async (farmData: RegisterFarmRequest) => {
-                set({ isLoading: true, error: null });
-                try {
-                    await authService.registerFarm(farmData);
-                    set({ isLoading: false });
-                    return true;
-                } catch (error) {
-                    set({
-                        isLoading: false,
-                        error: error instanceof Error ? error.message : 'Error al registrar finca',
-                    });
-                    return false;
-                }
-            },
-
-            getProfile: async () => {
-                if (!get().accessToken) return;
-
-                set({ isLoading: true });
-                try {
-                    const userData = await authService.getProfile();
-                    set({
-                        user: userData,
-                        isAuthenticated: true,
-                        isLoading: false,
-                    });
-                } catch (error) {
-                    set({
+                        // limpiamos todo lo demás
                         user: null,
                         accessToken: null,
                         isAuthenticated: false,
                         isLoading: false,
-                        error: error instanceof Error ? error.message : 'Error al obtener el perfil',
-                    });
-                }
-            },
+                        error: null,
+                    }));
+                },
 
-            clearError: () => {
-                set({ error: null });
-            },
-        }),
-        {
-            name: 'auth-storage',
-            partialize: (state) => ({
-                user: state.user,
-                accessToken: state.accessToken,
-                isAuthenticated: state.isAuthenticated,
+
+                registerClient: async (data) => {
+                    set({ isLoading: true, error: null });
+                    try {
+                        await authService.registerClient(data);
+                        return true;
+                    } catch (err) {
+                        const message =
+                            err instanceof Error
+                                ? err.message
+                                : 'Error al registrar cliente';
+                        set({ error: message });
+                        return false;
+                    } finally {
+                        set({ isLoading: false });
+                    }
+                },
+
+                registerFarm: async (data) => {
+                    set({ isLoading: true, error: null });
+                    try {
+                        await authService.registerFarm(data);
+                        return true;
+                    } catch (err) {
+                        const message =
+                            err instanceof Error
+                                ? err.message
+                                : 'Error al registrar finca';
+                        set({ error: message });
+                        return false;
+                    } finally {
+                        set({ isLoading: false });
+                    }
+                },
+
+                getProfile: async () => {
+                    const token = get().accessToken;
+                    if (!token) return;
+                    set({ isLoading: true });
+                    try {
+                        const userData = await authService.getProfile();
+                        set({ user: userData, isAuthenticated: true });
+                    } catch (err) {
+                        const message =
+                            err instanceof Error
+                                ? err.message
+                                : 'Error al obtener el perfil';
+                        set({ ...initialState, error: message });
+                    } finally {
+                        set({ isLoading: false });
+                    }
+                },
+
+                clearError: () => {
+                    set({ error: null });
+                },
             }),
-        }
+            {
+                name: 'auth-storage',
+                partialize: (state) => ({
+                    user: state.user,
+                    accessToken: state.accessToken,
+                    isAuthenticated: state.isAuthenticated,
+                }),
+                onRehydrateStorage: () => (state, error) => {
+                    if (error) {
+                        console.error('Error al rehidratar auth store:', error);
+                    } else if (state) {
+                        // Una vez cargado desde localStorage, marcamos hydrated
+                        state.hasHydrated = true;
+                    }
+                },
+            }
+        )
     )
 );

@@ -1,7 +1,8 @@
+// src/modules/auth/components/AuthGuard.tsx
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../stores/useAuthStore';
 
 interface AuthGuardProps {
@@ -13,46 +14,43 @@ interface AuthGuardProps {
 export function AuthGuard({
     children,
     requireAuth = true,
-    allowedRoles
+    allowedRoles,
 }: AuthGuardProps) {
-    const { isAuthenticated, user } = useAuthStore();
     const router = useRouter();
-    const pathname = usePathname();
+    // ← tres selectores independientes
+    const hasHydrated = useAuthStore(state => state.hasHydrated);
+    const isAuthenticated = useAuthStore(state => state.isAuthenticated);
+    const user = useAuthStore(state => state.user);
 
     useEffect(() => {
-        // Si requiere autenticación y no está autenticado, redirigir a login
+        if (!hasHydrated) return;
+
+        const returnUrl = window.location.pathname + window.location.search;
+
         if (requireAuth && !isAuthenticated) {
-            router.push(`/auth/login?returnUrl=${encodeURIComponent(pathname)}`);
+            router.push(`/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`);
             return;
         }
 
-        // Si está autenticado pero accede a rutas de login/registro, redirigir a dashboard
-        if (isAuthenticated && !requireAuth && (
-            pathname.includes('/auth/login') ||
-            pathname.includes('/auth/register')
-        )) {
+        if (!requireAuth && isAuthenticated &&
+            (returnUrl.startsWith('/auth/login') ||
+                returnUrl.startsWith('/auth/register'))) {
             router.push('/dashboard');
             return;
         }
 
-        // Verificar roles si se especifican
         if (requireAuth && isAuthenticated && allowedRoles?.length && user) {
-            const hasRequiredRole = user.roles.some((role: string) => allowedRoles.includes(role));
-            if (!hasRequiredRole) {
-                // Redirigir a una página de acceso denegado
+            const hasRole = user.roles.some(r => allowedRoles.includes(r.nombre));
+            if (!hasRole) {
                 router.push('/access-denied');
             }
         }
-    }, [isAuthenticated, pathname, requireAuth, router, allowedRoles, user]);
+    }, [hasHydrated, isAuthenticated, requireAuth, allowedRoles, user, router]);
 
-    // Si estamos verificando la autenticación y requiere auth, mostramos un loading
-    if (requireAuth && !isAuthenticated) {
+    if (!hasHydrated) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-                    <p className="text-muted-foreground">Verificando sesión...</p>
-                </div>
+                <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin" />
             </div>
         );
     }

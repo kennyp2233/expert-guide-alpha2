@@ -21,7 +21,7 @@ interface FormWrapperProps<Values extends FormikValues> {
     children: React.ReactNode;
     title?: React.ReactNode;
     description?: React.ReactNode;
-    submitText?: string;
+    submitText?: React.ReactNode;
     className?: string;
 }
 
