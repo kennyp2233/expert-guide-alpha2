@@ -1,3 +1,4 @@
+// src/modules/documents/services/documentService.ts
 import { apiGet, apiPost, apiUpload } from '@/lib/api';
 
 // Interfaces basadas en los formatos de respuesta proporcionados
@@ -101,6 +102,7 @@ export const documentService = {
 
     /**
      * Obtiene los documentos de una finca específica
+     * Si no se proporciona farmId, obtiene los documentos de la finca del usuario actual
      */
     getFarmDocuments: async (farmId?: number): Promise<Document[]> => {
         const url = farmId ? `/documents/finca/${farmId}` : '/documents/finca';

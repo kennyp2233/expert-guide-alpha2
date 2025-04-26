@@ -1,3 +1,4 @@
+// src/modules/auth/stores/useAuthStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { authService } from '@/modules/auth/services/authService';
@@ -7,7 +8,6 @@ import {
     RegisterFarmRequest,
     User
 } from '@/types/auth';
-import { AxiosError } from 'axios';
 
 interface AuthState {
     user: User | null;
@@ -22,6 +22,7 @@ interface AuthState {
     registerClient: (userData: RegisterClientRequest) => Promise<boolean>;
     registerFarm: (farmData: RegisterFarmRequest) => Promise<boolean>;
     clearError: () => void;
+    getProfile: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -45,16 +46,9 @@ export const useAuthStore = create<AuthState>()(
                     });
                     return true;
                 } catch (error) {
-                    const axiosError = error as AxiosError<{ message: string | string[] }>;
-                    const errorMessage = typeof axiosError.response?.data.message === 'string'
-                        ? axiosError.response?.data.message
-                        : Array.isArray(axiosError.response?.data.message)
-                            ? axiosError.response?.data.message[0]
-                            : 'Error al iniciar sesión';
-
                     set({
                         isLoading: false,
-                        error: errorMessage
+                        error: error instanceof Error ? error.message : 'Error al iniciar sesión'
                     });
                     return false;
                 }
@@ -76,16 +70,9 @@ export const useAuthStore = create<AuthState>()(
                     set({ isLoading: false });
                     return true;
                 } catch (error) {
-                    const axiosError = error as AxiosError<{ message: string | string[] }>;
-                    const errorMessage = typeof axiosError.response?.data.message === 'string'
-                        ? axiosError.response?.data.message
-                        : Array.isArray(axiosError.response?.data.message)
-                            ? axiosError.response?.data.message[0]
-                            : 'Error al registrar usuario';
-
                     set({
                         isLoading: false,
-                        error: errorMessage
+                        error: error instanceof Error ? error.message : 'Error al registrar usuario'
                     });
                     return false;
                 }
@@ -98,18 +85,34 @@ export const useAuthStore = create<AuthState>()(
                     set({ isLoading: false });
                     return true;
                 } catch (error) {
-                    const axiosError = error as AxiosError<{ message: string | string[] }>;
-                    const errorMessage = typeof axiosError.response?.data.message === 'string'
-                        ? axiosError.response?.data.message
-                        : Array.isArray(axiosError.response?.data.message)
-                            ? axiosError.response?.data.message[0]
-                            : 'Error al registrar finca';
-
                     set({
                         isLoading: false,
-                        error: errorMessage
+                        error: error instanceof Error ? error.message : 'Error al registrar finca'
                     });
                     return false;
+                }
+            },
+
+            getProfile: async () => {
+                // Solo intentamos obtener el perfil si hay un token
+                if (!get().accessToken) return;
+
+                set({ isLoading: true });
+                try {
+                    const userData = await authService.getProfile();
+                    set({
+                        user: userData,
+                        isLoading: false
+                    });
+                } catch (error) {
+                    // Si hay un error al obtener el perfil, probablemente el token es inválido
+                    set({
+                        user: null,
+                        accessToken: null,
+                        isAuthenticated: false,
+                        isLoading: false,
+                        error: error instanceof Error ? error.message : 'Error al obtener el perfil'
+                    });
                 }
             },
 

@@ -1,14 +1,12 @@
-export interface Roles {
-    id: number;
-    nombre: string;
-    metadata?: any;
-}
+// src/types/auth.ts
+import { Role } from './user';
 
 export interface User {
     id: string;
     email: string;
     username: string;
-    roles: Roles[];
+    roles: Role[];
+    usuario?: string; // Algunos endpoints devuelven usuario en vez de username
 }
 
 export interface LoginRequest {
@@ -31,6 +29,16 @@ export interface RegisterClientRequest {
     ciudad?: string;
 }
 
+export interface RegisterClientResponse {
+    message: string;
+    user: {
+        id: string;
+        email: string;
+        username: string;
+    };
+    access_token: string;
+}
+
 export interface RegisterFarmRequest {
     nombre: string;
     tag: string;
@@ -41,6 +49,21 @@ export interface RegisterFarmRequest {
     direccion?: string;
     ciudad?: string;
     pais?: string;
+}
+
+export interface RegisterFarmResponse {
+    message: string;
+    user: {
+        id: string;
+        email: string;
+        username: string;
+    };
+    finca: {
+        id: number;
+        nombre: string;
+        tag: string;
+    };
+    access_token: string;
 }
 
 export interface ApiError {

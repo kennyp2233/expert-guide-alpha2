@@ -1,11 +1,15 @@
-import { apiPost } from '@/lib/api';
+// src/modules/auth/services/authService.ts
+import { apiPost, apiGet } from '@/lib/api';
 import {
     LoginRequest,
     LoginResponse,
     RegisterClientRequest,
+    RegisterClientResponse,
     RegisterFarmRequest,
+    RegisterFarmResponse,
     User
 } from '@/types/auth';
+import { UserProfileResponse } from '@/types/user';
 
 // Servicio para la autenticación
 export const authService = {
@@ -19,21 +23,34 @@ export const authService = {
     /**
      * Registra un nuevo cliente
      */
-    registerClient: async (userData: RegisterClientRequest): Promise<{ message: string }> => {
-        return await apiPost<{ message: string }>('/auth/register/client', userData);
+    registerClient: async (userData: RegisterClientRequest): Promise<RegisterClientResponse> => {
+        return await apiPost<RegisterClientResponse>('/auth/register/client', userData);
     },
 
     /**
      * Registra una nueva finca
      */
-    registerFarm: async (farmData: RegisterFarmRequest): Promise<{ message: string }> => {
-        return await apiPost<{ message: string }>('/auth/register/farm', farmData);
+    registerFarm: async (farmData: RegisterFarmRequest): Promise<RegisterFarmResponse> => {
+        return await apiPost<RegisterFarmResponse>('/auth/register/farm', farmData);
     },
 
     /**
      * Obtiene el perfil del usuario actual
+     * La respuesta debe ser adaptada al formato User que espera el store
      */
     getProfile: async (): Promise<User> => {
-        return await apiPost<User>('/auth/profile');
+        const profileResponse = await apiGet<UserProfileResponse>('/auth/profile');
+
+        // Adaptamos la respuesta al formato que espera el store
+        const user: User = {
+            id: profileResponse.id,
+            email: profileResponse.email,
+            username: profileResponse.usuario,
+            roles: profileResponse.roles || [],
+            // Asignamos usuario para mantener compatibilidad con ambos formatos
+            usuario: profileResponse.usuario
+        };
+
+        return user;
     }
 };

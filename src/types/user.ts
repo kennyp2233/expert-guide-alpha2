@@ -1,3 +1,4 @@
+// src/types/user.ts
 // Interfaces para usuario y roles basadas en las respuestas de la API
 
 export interface Farm {

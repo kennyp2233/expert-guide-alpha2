@@ -1,8 +1,8 @@
+// src/modules/users/services/userService.ts
 import { apiGet, apiPost, apiPatch } from '@/lib/api';
 import {
     User,
     UserRole,
-    Role,
     UserRoleAssignRequest,
     UserRoleApprovalResponse,
     PendingApprovalsResponse
