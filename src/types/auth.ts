@@ -1,8 +1,14 @@
+export interface Roles {
+    id: number;
+    nombre: string;
+    metadata?: any;
+}
+
 export interface User {
     id: string;
     email: string;
     username: string;
-    roles: string[];
+    roles: Roles[];
 }
 
 export interface LoginRequest {
