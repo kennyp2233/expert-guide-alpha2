@@ -45,8 +45,12 @@ export const authService = {
         const user: User = {
             id: profileResponse.id,
             email: profileResponse.email,
-            username: profileResponse.usuario,
+            username: profileResponse.usuario, // Usamos usuario como username
             roles: profileResponse.roles || [],
+            finca: profileResponse.finca,
+            cliente: profileResponse.cliente,
+            activo: profileResponse.activo,
+            createdAt: profileResponse.createdAt,
             // Asignamos usuario para mantener compatibilidad con ambos formatos
             usuario: profileResponse.usuario
         };

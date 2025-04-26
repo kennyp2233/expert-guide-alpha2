@@ -1,18 +1,18 @@
 // src/types/user.ts
-// Interfaces para usuario y roles basadas en las respuestas de la API
+import { Document } from "./document";
 
 export interface Farm {
     id: number;
     nombre_finca: string;
     tag: string;
     ruc_finca: string;
-    documentos?: any[];
+    documentos?: Document[];
 }
 
 export interface Cliente {
     id: number;
     nombre: string;
-    ruc: string;
+    ruc?: string;
     puntosFidelizacion?: any;
 }
 
@@ -33,6 +33,13 @@ export interface UserRole {
     createdAt?: string;
     updatedAt?: string;
     rol?: Role;
+    usuario?: {
+        id: string;
+        usuario: string;
+        email: string;
+        createdAt?: string;
+        activo?: boolean;
+    };
 }
 
 export interface User {

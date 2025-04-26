@@ -1,71 +1,14 @@
 // src/modules/documents/services/documentService.ts
 import { apiGet, apiPost, apiUpload } from '@/lib/api';
-
-// Interfaces basadas en los formatos de respuesta proporcionados
-export interface Farm {
-    id: number;
-    nombre_finca: string;
-    tag: string;
-    ruc_finca: string;
-}
-
-export interface DocumentType {
-    id: number;
-    nombre: string;
-    descripcion: string;
-    es_obligatorio: boolean;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface Document {
-    id: string;
-    id_finca: number;
-    id_tipo_documento: number;
-    ruta_archivo?: string;
-    nombre_archivo?: string;
-    tamano_archivo?: number;
-    tipo_mime?: string;
-    estado: string; // 'PENDIENTE' | 'APROBADO' | 'RECHAZADO'
-    comentario?: string;
-    fecha_subida?: string;
-    fecha_revision?: string;
-    id_revisor?: string;
-    finca?: Farm;
-    tipoDocumento?: DocumentType;
-    revisor?: {
-        id: string;
-        usuario: string;
-        email: string;
-    };
-}
-
-export interface CreateDocumentResponse {
-    message: string;
-    documento: Document;
-}
-
-export interface UploadDocumentResponse {
-    message: string;
-    documento: Document;
-}
-
-export interface ReviewDocumentResponse {
-    message: string;
-    documento: Document;
-}
-
-export interface CreateDocumentRequest {
-    id_finca?: number; // opcional si el usuario es una finca
-    id_tipo_documento: number;
-    comentario?: string;
-}
-
-export interface ReviewDocumentRequest {
-    id_documento: string;
-    estado: 'APROBADO' | 'RECHAZADO';
-    comentario?: string;
-}
+import {
+    Document,
+    DocumentType,
+    CreateDocumentRequest,
+    CreateDocumentResponse,
+    UploadDocumentResponse,
+    ReviewDocumentRequest,
+    ReviewDocumentResponse
+} from '@/types/document';
 
 export const documentService = {
     /**

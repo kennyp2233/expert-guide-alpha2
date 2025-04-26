@@ -1,12 +1,17 @@
 // src/types/auth.ts
-import { Role } from './user';
+import { Role, Farm, Cliente } from './user';
 
 export interface User {
     id: string;
     email: string;
     username: string;
-    roles: Role[];
     usuario?: string; // Algunos endpoints devuelven usuario en vez de username
+    roles: Role[];
+    finca?: Farm;
+    cliente?: Cliente;
+    activo?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface LoginRequest {
