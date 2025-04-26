@@ -3,12 +3,9 @@
 import Link from 'next/link';
 import { Rocket, ArrowLeft } from 'lucide-react';
 import { AuthGuard } from '@/modules/auth/components/AuthGuard';
-import { RegisterForm } from '@/modules/auth/components/RegisterForm';
-import { useAuthStore } from '@/modules/auth/stores/useAuthStore';
+import { RegisterClientForm } from '@/modules/auth/components/RegisterClientForm';
 
 export default function RegisterClientPage() {
-    const { registerClient, isLoading } = useAuthStore();
-
     return (
         <AuthGuard requireAuth={false}>
             <div className="flex min-h-screen flex-col">
@@ -19,7 +16,10 @@ export default function RegisterClientPage() {
                             <Rocket className="h-6 w-6 text-primary" />
                             <span className="text-primary">EHC ERP</span>
                         </Link>
-                        <Link href="/auth/login" className="flex items-center text-sm font-medium hover:text-primary transition-colors">
+                        <Link
+                            href="/auth/login"
+                            className="flex items-center text-sm font-medium hover:text-primary transition-colors"
+                        >
                             <ArrowLeft className="mr-1 h-4 w-4" /> Volver al inicio de sesión
                         </Link>
                     </div>
@@ -35,16 +35,8 @@ export default function RegisterClientPage() {
                             </p>
                         </div>
 
-                        <RegisterForm
-                            onSubmit={registerClient}
-                            title="Crear cuenta de cliente"
-                            description="Complete sus datos para registrarse como cliente"
-                            submitText="Registrarse"
-                            redirectText="¿Ya tiene una cuenta?"
-                            redirectLink="/auth/login"
-                            redirectLinkText="Iniciar sesión"
-                            isLoading={isLoading}
-                        />
+                        {/* Ahora sin props, el formulario se gestiona internamente */}
+                        <RegisterClientForm />
 
                         <div className="mt-8 text-center text-sm text-muted-foreground">
                             <p>

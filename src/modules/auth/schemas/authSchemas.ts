@@ -1,94 +1,144 @@
 // src/modules/auth/schemas/authSchemas.ts
-import { z } from 'zod';
+import * as yup from 'yup';
 
 /**
  * Esquema de validación para el login
  */
-export const loginSchema = z.object({
-    email: z
+export const loginSchema = yup.object({
+    email: yup
         .string()
-        .min(1, { message: 'El email es requerido' })
-        .email({ message: 'Email inválido' }),
-    password: z
+        .required('El email es requerido')
+        .email('Email inválido'),
+    password: yup
         .string()
-        .min(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+        .required('La contraseña es requerida')
+        .min(6, 'La contraseña debe tener al menos 6 caracteres'),
 });
+export type LoginFormValues = yup.InferType<typeof loginSchema>;
 
 /**
  * Esquema de validación para el registro de clientes
  */
-export const registerClientSchema = z.object({
-    username: z.string().min(1, { message: 'El nombre de usuario es requerido' }),
-    nombre: z.string().min(1, { message: 'El nombre de la empresa es requerido' }),
-    telefono: z.string().min(1, { message: 'El teléfono es requerido' }),
-    email: z
-        .string()
-        .min(1, { message: 'El email es requerido' })
-        .email({ message: 'Email inválido' }),
-    password: z
-        .string()
-        .min(6, { message: 'La contraseña debe tener al menos 6 caracteres' }),
-    passwordConfirm: z
-        .string()
-        .min(1, { message: 'La confirmación de contraseña es requerida' }),
-    ruc: z.string().optional(), // RUC es opcional según la doc
-    direccion: z.string().optional(),
-    ciudad: z.string().optional(),
-    pais: z.string().optional(),
-    terms: z.boolean().refine(val => val === true, {
-        message: 'Debes aceptar los términos y condiciones'
+export const registerClientSchema = yup
+    .object({
+        username: yup
+            .string()
+            .required('El nombre de usuario es requerido'),
+        nombre: yup
+            .string()
+            .required('El nombre de la empresa es requerido'),
+        telefono: yup
+            .string()
+            .required('El teléfono es requerido'),
+        email: yup
+            .string()
+            .required('El email es requerido')
+            .email('Email inválido'),
+        password: yup
+            .string()
+            .required('La contraseña es requerida')
+            .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+        passwordConfirm: yup
+            .string()
+            .required('La confirmación de contraseña es requerida')
+            .oneOf([yup.ref('password')], 'Las contraseñas no coinciden'),
+        ruc: yup.string().optional(),
+        direccion: yup.string().optional(),
+        ciudad: yup.string().optional(),
+        pais: yup.string().optional(),
+        terms: yup
+            .boolean()
+            .oneOf([true], 'Debes aceptar los términos y condiciones'),
     })
-}).refine(data => data.password === data.passwordConfirm, {
-    message: 'Las contraseñas no coinciden',
-    path: ['passwordConfirm'],
-});
+    .required();
+export type RegisterClientFormValues = yup.InferType<typeof registerClientSchema>;
 
 /**
  * Esquema de validación para el registro de fincas
  */
-export const registerFarmSchema = z.object({
-    username: z.string().min(1, { message: 'El nombre de usuario es requerido' }),
-    nombre_finca: z.string().min(1, { message: 'El nombre de la finca es requerido' }),
-    tag: z.string().optional(), // El tag es opcional según la doc
-    email: z
-        .string()
-        .min(1, { message: 'El email es requerido' })
-        .email({ message: 'Email inválido' }),
-    password: z
-        .string()
-        .min(6, { message: 'La contraseña debe tener al menos 6 caracteres' }),
-    passwordConfirm: z
-        .string()
-        .min(1, { message: 'La confirmación de contraseña es requerida' }),
-    ruc_finca: z
-        .string()
-        .min(1, { message: 'El RUC de la finca es requerido' }),
-    tipo_documento: z
-        .string()
-        .min(1, { message: 'El tipo de documento es requerido' }),
-    i_general_telefono: z
-        .string()
-        .min(1, { message: 'El teléfono general es requerido' }),
-    i_general_email: z
-        .string()
-        .min(1, { message: 'El email de contacto es requerido' }),
-    i_general_ciudad: z.string().optional(),
-    i_general_provincia: z.string().optional(),
-    i_general_pais: z.string().optional(),
-    i_general_cod_sesa: z.string().optional(),
-    i_general_cod_pais: z.string().optional(),
-    genera_guias_certificadas: z.boolean().optional(),
-    terms: z.boolean().refine(val => val === true, {
-        message: 'Debes aceptar los términos y condiciones'
+export const registerFarmSchema = yup
+    .object({
+        username: yup
+            .string()
+            .required('El nombre de usuario es requerido'),
+        nombre_finca: yup
+            .string()
+            .required('El nombre de la finca es requerido'),
+        tag: yup
+            .string()
+            .required('El código identificador es requerido'),
+        email: yup
+            .string()
+            .required('El email es requerido')
+            .email('Email inválido'),
+        password: yup
+            .string()
+            .required('La contraseña es requerida')
+            .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+        passwordConfirm: yup
+            .string()
+            .required('La confirmación de contraseña es requerida')
+            .oneOf([yup.ref('password')], 'Las contraseñas no coinciden'),
+        ruc_finca: yup
+            .string()
+            .required('El RUC de la finca es requerido'),
+        tipo_documento: yup
+            .string()
+            .oneOf(['RUC', 'CI', 'PASSPORT'], 'Tipo de documento inválido')
+            .default('RUC'),
+        terms: yup
+            .boolean()
+            .oneOf([true], 'Debes aceptar los términos y condiciones'),
     })
-}).refine(data => data.password === data.passwordConfirm, {
-    message: 'Las contraseñas no coinciden',
-    path: ['passwordConfirm'],
-});
+    .required();
+export type RegisterFarmFormValues = yup.InferType<typeof registerFarmSchema>;
 
 /**
- * Tipos inferidos a partir de los esquemas
+ * Esquema para cambio de contraseña
  */
-export type LoginFormValues = z.infer<typeof loginSchema>;
-export type RegisterClientFormValues = z.infer<typeof registerClientSchema>;
-export type RegisterFarmFormValues = z.infer<typeof registerFarmSchema>;
+export const changePasswordSchema = yup
+    .object({
+        currentPassword: yup
+            .string()
+            .required('La contraseña actual es requerida'),
+        newPassword: yup
+            .string()
+            .required('La nueva contraseña es requerida')
+            .min(6, 'La nueva contraseña debe tener al menos 6 caracteres'),
+        confirmPassword: yup
+            .string()
+            .required('La confirmación de contraseña es requerida')
+            .oneOf([yup.ref('newPassword')], 'Las contraseñas no coinciden'),
+    })
+    .required();
+export type ChangePasswordFormValues = yup.InferType<typeof changePasswordSchema>;
+
+/**
+ * Esquema para solicitud de recuperación de contraseña
+ */
+export const forgotPasswordSchema = yup
+    .object({
+        email: yup
+            .string()
+            .required('El email es requerido')
+            .email('Email inválido'),
+    })
+    .required();
+export type ForgotPasswordFormValues = yup.InferType<typeof forgotPasswordSchema>;
+
+/**
+ * Esquema para restablecer la contraseña
+ */
+export const resetPasswordSchema = yup
+    .object({
+        password: yup
+            .string()
+            .required('La contraseña es requerida')
+            .min(6, 'La contraseña debe tener al menos 6 caracteres'),
+        confirmPassword: yup
+            .string()
+            .required('La confirmación de contraseña es requerida')
+            .oneOf([yup.ref('password')], 'Las contraseñas no coinciden'),
+    })
+    .required();
+export type ResetPasswordFormValues = yup.InferType<typeof resetPasswordSchema>;
