@@ -11,7 +11,7 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { useToast } from '@/shared/hooks/useToast';
 import {
     RegisterFarmFormValues,
-    registerFarmSchema
+    registerFarmSchema,
 } from '@/modules/auth/schemas/authSchemas';
 
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ import {
     CardTitle,
     CardDescription,
     CardContent,
-    CardFooter
+    CardFooter,
 } from '@/components/ui/card';
 
 export function RegisterFarmForm() {
@@ -42,34 +42,46 @@ export function RegisterFarmForm() {
     } = useForm<RegisterFarmFormValues>({
         resolver: zodResolver(registerFarmSchema),
         defaultValues: {
-            nombre: '',
+            username: '',
+            nombre_finca: '',
             tag: '',
             email: '',
             password: '',
             passwordConfirm: '',
-            ruc: '',
-            telefono: '',
-            direccion: '',
-            ciudad: '',
-            pais: '',
+            ruc_finca: '',
+            tipo_documento: '',
+
             terms: false,
         },
     });
 
     const onSubmit = async (data: RegisterFarmFormValues) => {
         try {
-            // Eliminar campos no necesarios para la API
-            const { passwordConfirm, terms, ...requestData } = data;
+            const {
+                passwordConfirm,
+                terms,
+                ...rest
+            } = data;
+
+            // Mapeo correcto según API
+            const requestData = {
+                username: rest.username,
+                email: rest.email,
+                password: rest.password,
+                nombre_finca: rest.nombre_finca,
+                tag: rest.tag || undefined, // opcional
+                ruc_finca: rest.ruc_finca,
+                tipo_documento: rest.tipo_documento,
+            };
 
             await registerFarm(requestData);
             toast('Registro de finca exitoso, ahora puede iniciar sesión', 'success');
             router.push('/auth/login');
         } catch (error) {
-            // Los errores ya son manejados por el store
+            // Los errores ya son manejados en el store
         }
     };
 
-    // Mostrar mensaje de error del store
     if (error) {
         toast(error, 'error');
         clearError();
@@ -88,15 +100,15 @@ export function RegisterFarmForm() {
                     {/* Información principal de la finca */}
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div className="space-y-2">
-                            <Label htmlFor="nombre">Nombre de la Finca <span className="text-destructive">*</span></Label>
+                            <Label htmlFor="nombre_finca">Nombre de la Finca <span className="text-destructive">*</span></Label>
                             <Input
-                                id="nombre"
+                                id="nombre_finca"
                                 placeholder="Nombre legal de la finca"
-                                {...register('nombre')}
-                                className={errors.nombre ? 'border-destructive' : ''}
+                                {...register('nombre_finca')}
+                                className={errors.nombre_finca ? 'border-destructive' : ''}
                             />
-                            {errors.nombre && (
-                                <p className="text-sm text-destructive">{errors.nombre.message}</p>
+                            {errors.nombre_finca && (
+                                <p className="text-sm text-destructive">{errors.nombre_finca.message}</p>
                             )}
                         </div>
                         <div className="space-y-2">
@@ -113,8 +125,20 @@ export function RegisterFarmForm() {
                         </div>
                     </div>
 
-                    {/* Información de contacto */}
+                    {/* Información de usuario */}
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                            <Label htmlFor="username">Nombre de Usuario <span className="text-destructive">*</span></Label>
+                            <Input
+                                id="username"
+                                placeholder="Nombre para iniciar sesión"
+                                {...register('username')}
+                                className={errors.username ? 'border-destructive' : ''}
+                            />
+                            {errors.username && (
+                                <p className="text-sm text-destructive">{errors.username.message}</p>
+                            )}
+                        </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Correo Electrónico <span className="text-destructive">*</span></Label>
                             <Input
@@ -128,18 +152,19 @@ export function RegisterFarmForm() {
                                 <p className="text-sm text-destructive">{errors.email.message}</p>
                             )}
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="ruc">RUC <span className="text-destructive">*</span></Label>
-                            <Input
-                                id="ruc"
-                                placeholder="Número de RUC"
-                                {...register('ruc')}
-                                className={errors.ruc ? 'border-destructive' : ''}
-                            />
-                            {errors.ruc && (
-                                <p className="text-sm text-destructive">{errors.ruc.message}</p>
-                            )}
-                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="ruc_finca">RUC <span className="text-destructive">*</span></Label>
+                        <Input
+                            id="ruc_finca"
+                            placeholder="Número de RUC"
+                            {...register('ruc_finca')}
+                            className={errors.ruc_finca ? 'border-destructive' : ''}
+                        />
+                        {errors.ruc_finca && (
+                            <p className="text-sm text-destructive">{errors.ruc_finca.message}</p>
+                        )}
                     </div>
 
                     {/* Contraseñas */}
@@ -178,50 +203,6 @@ export function RegisterFarmForm() {
                             {errors.passwordConfirm && (
                                 <p className="text-sm text-destructive">{errors.passwordConfirm.message}</p>
                             )}
-                        </div>
-                    </div>
-
-                    {/* Información adicional de contacto */}
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label htmlFor="telefono">Teléfono <span className="text-destructive">*</span></Label>
-                            <Input
-                                id="telefono"
-                                type="tel"
-                                placeholder="+593 xxxxxxxxx"
-                                {...register('telefono')}
-                                className={errors.telefono ? 'border-destructive' : ''}
-                            />
-                            {errors.telefono && (
-                                <p className="text-sm text-destructive">{errors.telefono.message}</p>
-                            )}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="direccion">Dirección</Label>
-                            <Input
-                                id="direccion"
-                                placeholder="Dirección física (opcional)"
-                                {...register('direccion')}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label htmlFor="pais">País</Label>
-                            <Input
-                                id="pais"
-                                placeholder="País (opcional)"
-                                {...register('pais')}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="ciudad">Ciudad</Label>
-                            <Input
-                                id="ciudad"
-                                placeholder="Ciudad (opcional)"
-                                {...register('ciudad')}
-                            />
                         </div>
                     </div>
 

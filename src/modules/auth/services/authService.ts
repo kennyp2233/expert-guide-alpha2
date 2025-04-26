@@ -7,9 +7,8 @@ import {
     RegisterClientResponse,
     RegisterFarmRequest,
     RegisterFarmResponse,
-    User
 } from '@/types/auth';
-import { UserProfileResponse } from '@/types/user';
+import { User, UserProfileResponse } from '@/types/user';
 
 // Servicio para la autenticación
 export const authService = {
@@ -23,8 +22,8 @@ export const authService = {
     /**
      * Registra un nuevo cliente
      */
-    registerClient: async (userData: RegisterClientRequest): Promise<RegisterClientResponse> => {
-        return await apiPost<RegisterClientResponse>('/auth/register/client', userData);
+    registerClient: async (clientData: RegisterClientRequest): Promise<RegisterClientResponse> => {
+        return await apiPost<RegisterClientResponse>('/auth/register/client', clientData);
     },
 
     /**
@@ -36,23 +35,19 @@ export const authService = {
 
     /**
      * Obtiene el perfil del usuario actual
-     * La respuesta debe ser adaptada al formato User que espera el store
      */
     getProfile: async (): Promise<User> => {
-        const profileResponse = await apiGet<UserProfileResponse>('/auth/profile');
+        const profile = await apiGet<UserProfileResponse>('/auth/profile');
 
-        // Adaptamos la respuesta al formato que espera el store
         const user: User = {
-            id: profileResponse.id,
-            email: profileResponse.email,
-            username: profileResponse.usuario, // Usamos usuario como username
-            roles: profileResponse.roles || [],
-            finca: profileResponse.finca,
-            cliente: profileResponse.cliente,
-            activo: profileResponse.activo,
-            createdAt: profileResponse.createdAt,
-            // Asignamos usuario para mantener compatibilidad con ambos formatos
-            usuario: profileResponse.usuario
+            id: profile.id,
+            email: profile.email,
+            usuario: profile.usuario,
+            roles: profile.roles || [],
+            finca: profile.finca,
+            cliente: profile.cliente,
+            activo: profile.activo,
+            createdAt: profile.createdAt,
         };
 
         return user;

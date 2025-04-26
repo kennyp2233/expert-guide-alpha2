@@ -20,12 +20,14 @@ import {
 } from '@/components/ui/card';
 import { useToast } from '@/shared/hooks/useToast';
 
-// Schema de validación simplificado
+// Esquema de validación corregido
 const registerSchema = z.object({
-    name: z.string().min(1, 'El nombre es requerido'),
+    username: z.string().min(1, 'El nombre de usuario es requerido'),
+    nombre: z.string().min(1, 'El nombre de la empresa es requerido'),
+    telefono: z.string().min(1, 'El teléfono es requerido'),
     email: z.string().min(1, 'El email es requerido').email('Email inválido'),
     password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-    confirmPassword: z.string().min(1, 'La confirmación es requerida'),
+    confirmPassword: z.string().min(1, 'La confirmación de contraseña es requerida'),
     terms: z.boolean().refine(val => val === true, {
         message: 'Debes aceptar los términos y condiciones'
     })
@@ -36,16 +38,14 @@ const registerSchema = z.object({
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-// Props para hacer el componente reutilizable
 interface RegisterFormProps {
-    onSubmit: (data: any) => Promise<boolean>;
+    onSubmit: (data: RegisterFormValues) => Promise<boolean>;
     title: string;
     description: string;
     submitText: string;
     redirectText: string;
     redirectLink: string;
     redirectLinkText: string;
-    fields?: string[]; // Campos adicionales opcionales
     isLoading?: boolean;
 }
 
@@ -72,7 +72,9 @@ export function RegisterForm({
     } = useForm<RegisterFormValues>({
         resolver: zodResolver(registerSchema),
         defaultValues: {
-            name: '',
+            username: '',
+            nombre: '',
+            telefono: '',
             email: '',
             password: '',
             confirmPassword: '',
@@ -81,12 +83,14 @@ export function RegisterForm({
     });
 
     const handleFormSubmit = async (data: RegisterFormValues) => {
-        // Transformar los datos para la API
         const apiData = {
-            nombre: data.name,
+            username: data.username,
+            nombre: data.nombre,
+            telefono: data.telefono,
             email: data.email,
             password: data.password,
-            // Otros campos específicos se pueden agregar según el tipo de registro
+            confirmPassword: data.confirmPassword,
+            terms: data.terms
         };
 
         try {
@@ -112,15 +116,41 @@ export function RegisterForm({
             <form onSubmit={handleSubmit(handleFormSubmit)}>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="name">Nombre</Label>
+                        <Label htmlFor="username">Nombre de Usuario</Label>
                         <Input
-                            id="name"
-                            placeholder="Ingrese su nombre"
-                            {...register('name')}
-                            aria-invalid={!!errors.name}
+                            id="username"
+                            placeholder="Ingrese un nombre de usuario"
+                            {...register('username')}
+                            aria-invalid={!!errors.username}
                         />
-                        {errors.name && (
-                            <p className="text-sm text-destructive">{errors.name.message}</p>
+                        {errors.username && (
+                            <p className="text-sm text-destructive">{errors.username.message}</p>
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="nombre">Nombre de la Empresa</Label>
+                        <Input
+                            id="nombre"
+                            placeholder="Ingrese el nombre de su empresa"
+                            {...register('nombre')}
+                            aria-invalid={!!errors.nombre}
+                        />
+                        {errors.nombre && (
+                            <p className="text-sm text-destructive">{errors.nombre.message}</p>
+                        )}
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="telefono">Teléfono</Label>
+                        <Input
+                            id="telefono"
+                            placeholder="Ingrese su teléfono"
+                            {...register('telefono')}
+                            aria-invalid={!!errors.telefono}
+                        />
+                        {errors.telefono && (
+                            <p className="text-sm text-destructive">{errors.telefono.message}</p>
                         )}
                     </div>
 

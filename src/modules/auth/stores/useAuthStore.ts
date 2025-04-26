@@ -6,8 +6,9 @@ import {
     LoginRequest,
     RegisterClientRequest,
     RegisterFarmRequest,
-    User
+    LoginResponse,
 } from '@/types/auth';
+import { User } from '@/types/user';
 
 interface AuthState {
     user: User | null;
@@ -19,10 +20,10 @@ interface AuthState {
     // Actions
     login: (credentials: LoginRequest) => Promise<boolean>;
     logout: () => void;
-    registerClient: (userData: RegisterClientRequest) => Promise<boolean>;
+    registerClient: (clientData: RegisterClientRequest) => Promise<boolean>;
     registerFarm: (farmData: RegisterFarmRequest) => Promise<boolean>;
-    clearError: () => void;
     getProfile: () => Promise<void>;
+    clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -37,18 +38,24 @@ export const useAuthStore = create<AuthState>()(
             login: async (credentials: LoginRequest) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await authService.login(credentials);
+                    const { user, access_token }: LoginResponse = await authService.login(credentials);
+
                     set({
-                        user: response.user,
-                        accessToken: response.access_token,
+                        user: {
+                            ...user,
+                            usuario: user.username,
+                            activo: true
+                        },
+                        accessToken: access_token,
                         isAuthenticated: true,
                         isLoading: false,
                     });
+
                     return true;
                 } catch (error) {
                     set({
                         isLoading: false,
-                        error: error instanceof Error ? error.message : 'Error al iniciar sesión'
+                        error: error instanceof Error ? error.message : 'Error al iniciar sesión',
                     });
                     return false;
                 }
@@ -63,16 +70,16 @@ export const useAuthStore = create<AuthState>()(
                 });
             },
 
-            registerClient: async (userData: RegisterClientRequest) => {
+            registerClient: async (clientData: RegisterClientRequest) => {
                 set({ isLoading: true, error: null });
                 try {
-                    await authService.registerClient(userData);
+                    await authService.registerClient(clientData);
                     set({ isLoading: false });
                     return true;
                 } catch (error) {
                     set({
                         isLoading: false,
-                        error: error instanceof Error ? error.message : 'Error al registrar usuario'
+                        error: error instanceof Error ? error.message : 'Error al registrar cliente',
                     });
                     return false;
                 }
@@ -87,14 +94,13 @@ export const useAuthStore = create<AuthState>()(
                 } catch (error) {
                     set({
                         isLoading: false,
-                        error: error instanceof Error ? error.message : 'Error al registrar finca'
+                        error: error instanceof Error ? error.message : 'Error al registrar finca',
                     });
                     return false;
                 }
             },
 
             getProfile: async () => {
-                // Solo intentamos obtener el perfil si hay un token
                 if (!get().accessToken) return;
 
                 set({ isLoading: true });
@@ -102,16 +108,16 @@ export const useAuthStore = create<AuthState>()(
                     const userData = await authService.getProfile();
                     set({
                         user: userData,
-                        isLoading: false
+                        isAuthenticated: true,
+                        isLoading: false,
                     });
                 } catch (error) {
-                    // Si hay un error al obtener el perfil, probablemente el token es inválido
                     set({
                         user: null,
                         accessToken: null,
                         isAuthenticated: false,
                         isLoading: false,
-                        error: error instanceof Error ? error.message : 'Error al obtener el perfil'
+                        error: error instanceof Error ? error.message : 'Error al obtener el perfil',
                     });
                 }
             },
@@ -122,11 +128,10 @@ export const useAuthStore = create<AuthState>()(
         }),
         {
             name: 'auth-storage',
-            // Solo persistimos lo esencial
             partialize: (state) => ({
                 user: state.user,
                 accessToken: state.accessToken,
-                isAuthenticated: state.isAuthenticated
+                isAuthenticated: state.isAuthenticated,
             }),
         }
     )
