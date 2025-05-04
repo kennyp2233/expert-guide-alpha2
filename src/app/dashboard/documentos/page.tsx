@@ -16,16 +16,6 @@ export default function DocumentosPage() {
 
     // Verificar si el usuario es admin o tiene permisos de admin
     const isAdmin = user?.roles.some(role => role.nombre === 'ADMIN');
-    console.log('isAdmin:', isAdmin);
-
-    // Obtener el ID de la finca si el usuario tiene rol de finca
-    const getFarmId = (): number | undefined => {
-        // Asumiendo que la información de la finca está disponible en el usuario cuando tiene ese rol
-        if (user?.roles.some(role => role.nombre === 'FINCA')) {
-            return user.finca?.id;
-        }
-        return undefined;
-    };
 
     const handleUploadSuccess = () => {
         setIsOpen(false);
@@ -62,7 +52,6 @@ export default function DocumentosPage() {
                             </SheetHeader>
                             <div className="mt-6">
                                 <UploadDocumentForm
-                                    farmId={getFarmId()}
                                     onSuccess={handleUploadSuccess}
                                 />
                             </div>
@@ -87,7 +76,7 @@ export default function DocumentosPage() {
                     </TabsContent>
                 </Tabs>
             ) : (
-                <DocumentList farmId={getFarmId()} key={`farm-${refreshTrigger}`} />
+                <DocumentList key={`farm-${refreshTrigger}`} />
             )}
         </div>
     );

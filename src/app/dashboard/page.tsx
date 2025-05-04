@@ -9,7 +9,7 @@ import { useAuthStore } from '@/modules/auth/stores/useAuthStore';
 export default function DashboardPage() {
     const { user } = useAuthStore();
     const router = useRouter();
-
+    
     const modules = [
         {
             title: 'Solicitudes',

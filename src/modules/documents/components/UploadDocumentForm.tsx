@@ -16,7 +16,8 @@ import {
     CardFooter
 } from '@/components/ui/card';
 import { Loader2, Upload, X } from 'lucide-react';
-import { documentService, DocumentType } from '../services/documentService';
+import { documentService } from '../services/documentService';
+import { DocumentType } from '@/types/document';
 import { useToast } from '@/shared/hooks/useToast';
 
 // Esquema de validación para el formulario
@@ -32,11 +33,10 @@ const uploadDocumentSchema = z.object({
 type UploadDocumentFormValues = z.infer<typeof uploadDocumentSchema>;
 
 interface UploadDocumentFormProps {
-    farmId?: number;
     onSuccess?: () => void;
 }
 
-export function UploadDocumentForm({ farmId, onSuccess }: UploadDocumentFormProps) {
+export function UploadDocumentForm({ onSuccess }: UploadDocumentFormProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -102,7 +102,6 @@ export function UploadDocumentForm({ farmId, onSuccess }: UploadDocumentFormProp
             const documentData = {
                 id_tipo_documento: data.id_tipo_documento,
                 comentario: data.comentario,
-                id_finca: farmId // Si no se proporciona, el backend asumirá que es la finca actual
             };
 
             const response = await documentService.createDocument(documentData);

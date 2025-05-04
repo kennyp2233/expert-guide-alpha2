@@ -48,8 +48,9 @@ export interface UploadDocumentResponse {
     documento: Document;
 }
 
+// Actualizando para que coincida con la documentación del API
 export interface ReviewDocumentRequest {
-    id_documento: string;
+    id: string; // Corregido: ahora es 'id' en lugar de 'id_documento'
     estado: 'APROBADO' | 'RECHAZADO';
     comentario?: string;
 }

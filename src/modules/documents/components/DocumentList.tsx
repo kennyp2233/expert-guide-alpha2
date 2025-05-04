@@ -6,15 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Plus, Search, Filter, Download, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { documentService, Document } from '../services/documentService';
+import { documentService } from '../services/documentService';
 import { useToast } from '@/shared/hooks/useToast';
+import { Document } from '@/types/document';
 
 interface DocumentListProps {
-    farmId?: number;
     isAdmin?: boolean;
 }
 
-export function DocumentList({ farmId, isAdmin = false }: DocumentListProps) {
+export function DocumentList({ isAdmin = false }: DocumentListProps) {
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -26,10 +26,10 @@ export function DocumentList({ farmId, isAdmin = false }: DocumentListProps) {
                 setLoading(true);
                 let docs: Document[];
 
-                if (isAdmin && !farmId) {
+                if (isAdmin) {
                     docs = await documentService.getPendingDocuments();
                 } else {
-                    docs = await documentService.getFarmDocuments(farmId);
+                    docs = await documentService.getFarmDocuments();
                 }
 
                 setDocuments(docs);
@@ -45,7 +45,7 @@ export function DocumentList({ farmId, isAdmin = false }: DocumentListProps) {
         };
 
         fetchDocuments();
-    }, [farmId, isAdmin, toast]);
+    }, [isAdmin, toast]);
 
     // Filtrar documentos según la búsqueda
     const filteredDocuments = documents.filter(doc =>
@@ -85,17 +85,17 @@ export function DocumentList({ farmId, isAdmin = false }: DocumentListProps) {
         try {
             setLoading(true);
             await documentService.reviewDocument({
-                id_documento: documentId,
+                id: documentId, // Corregido: ahora es 'id' en lugar de 'id_documento'
                 estado,
                 comentario: estado === 'RECHAZADO' ? 'Documento rechazado' : 'Documento aprobado'
             });
 
             // Recargar los documentos
-            if (isAdmin && !farmId) {
+            if (isAdmin) {
                 const docs = await documentService.getPendingDocuments();
                 setDocuments(docs);
             } else {
-                const docs = await documentService.getFarmDocuments(farmId);
+                const docs = await documentService.getFarmDocuments();
                 setDocuments(docs);
             }
 

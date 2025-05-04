@@ -48,7 +48,7 @@ export const documentService = {
      * Si no se proporciona farmId, obtiene los documentos de la finca del usuario actual
      */
     getFarmDocuments: async (farmId?: number): Promise<Document[]> => {
-        const url = farmId ? `/documents/finca/${farmId}` : '/documents/finca';
+        const url = '/documents/finca';
         return await apiGet<Document[]>(url);
     },
 
