@@ -20,10 +20,12 @@ export const UsersPage: React.FC = () => {
     const [search, setSearch] = useState('');
     const { toast } = useToast();
     const currentUser = useAuthStore((state) => state.user);
+
     const isAdmin = useMemo(
         () => currentUser?.roles.some(r => r.nombre === 'ADMIN'),
         [currentUser]
     );
+    console.log('isAdmin', currentUser);
 
     const fetchUsers = useCallback(async () => {
         if (!isAdmin) {

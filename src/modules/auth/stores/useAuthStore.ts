@@ -16,11 +16,8 @@ type AuthState = {
     isAuthenticated: boolean;
     isLoading: boolean;
     error: string | null;
-
-    // Flag para indicar que ya se rehidrató del storage
     hasHydrated: boolean;
 
-    // Helpers internos
     setLoading: (loading: boolean) => void;
     setError: (message: string | null) => void;
 };
@@ -51,9 +48,8 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             (set, get) => ({
                 ...initialState,
 
-                // Helpers
-                setLoading: (loading: boolean) => set({ isLoading: loading }),
-                setError: (message: string | null) => set({ error: message }),
+                setLoading: (loading) => set({ isLoading: loading }),
+                setError: (message) => set({ error: message }),
 
                 login: async (credentials) => {
                     set({ isLoading: true, error: null });
@@ -69,7 +65,9 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                         return true;
                     } catch (err) {
                         const message =
-                            err instanceof Error ? err.message : 'Error al iniciar sesión';
+                            err instanceof Error
+                                ? err.message
+                                : 'Error al iniciar sesión';
                         set({ error: message });
                         return false;
                     } finally {
@@ -79,10 +77,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
 
                 logout: () => {
                     set((state) => ({
-                        // preservamos hasHydrated para no volver a mostrar spinner
                         hasHydrated: state.hasHydrated,
-
-                        // limpiamos todo lo demás
                         user: null,
                         accessToken: null,
                         isAuthenticated: false,
@@ -90,7 +85,6 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                         error: null,
                     }));
                 },
-
 
                 registerClient: async (data) => {
                     set({ isLoading: true, error: null });
@@ -133,12 +127,9 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                     try {
                         const userData = await authService.getProfile();
                         set({ user: userData, isAuthenticated: true });
-                    } catch (err) {
-                        const message =
-                            err instanceof Error
-                                ? err.message
-                                : 'Error al obtener el perfil';
-                        set({ ...initialState, error: message });
+                    } catch {
+                        // si falla (por ejemplo token expirado), cerramos sesión
+                        get().logout();
                     } finally {
                         set({ isLoading: false });
                     }
@@ -155,13 +146,12 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                     accessToken: state.accessToken,
                     isAuthenticated: state.isAuthenticated,
                 }),
-                onRehydrateStorage: () => (state, error) => {
+                onRehydrateStorage: () => (draft, error) => {
                     if (error) {
                         console.error('Error al rehidratar auth store:', error);
-                    } else if (state) {
-                        // Una vez cargado desde localStorage, marcamos hydrated
-                        state.hasHydrated = true;
                     }
+                    // siempre marcamos que ya hidratamos
+                    draft!.hasHydrated = true;
                 },
             }
         )

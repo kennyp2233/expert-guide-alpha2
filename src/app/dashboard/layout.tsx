@@ -99,14 +99,10 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }>) {
     const [open, setOpen] = useState(false);
-    const { user, logout, isAuthenticated } = useAuthStore();
+    const { user, logout, isAuthenticated, hasHydrated } = useAuthStore();
     const router = useRouter();
 
-    useEffect(() => {
-        if (!isAuthenticated) {
-            router.push('/auth/login');
-        }
-    }, [isAuthenticated]);
+
 
     return (
         <AuthGuard>
@@ -123,14 +119,14 @@ export default function DashboardLayout({
                         <SheetContent side="left" className="w-[240px] sm:w-[300px]">
                             <div className="flex items-center gap-2 font-bold text-xl mb-6">
                                 <Rocket className="h-6 w-6 text-primary" />
-                                <span className="text-primary">EHC ERP</span>
+                                <span className="text-primary">ExpertGuide</span>
                             </div>
                             <SidebarNav />
                         </SheetContent>
                     </Sheet>
                     <div className="flex items-center gap-2 font-bold text-xl">
                         <Rocket className="h-6 w-6 text-primary" />
-                        <span className="text-primary">EHC ERP</span>
+                        <span className="text-primary">ExpertsGuide</span>
                     </div>
                     <div className="flex-1 flex justify-end gap-2">
                         <ThemeToggle />
@@ -142,7 +138,7 @@ export default function DashboardLayout({
                     <aside className="hidden lg:flex fixed z-30 inset-y-0 left-0 w-64 border-r bg-background flex-col">
                         <div className="flex items-center h-16 gap-2 font-bold text-xl px-4 border-b">
                             <Rocket className="h-6 w-6 text-primary" />
-                            <span className="text-primary">EHC ERP</span>
+                            <span className="text-primary">ExpertsGuide</span>
                         </div>
                         <div className="flex-1 overflow-auto py-4">
                             <SidebarNav />
