@@ -1,3 +1,5 @@
+// src/app/dashboard/documentos/page.tsx
+
 'use client';
 
 import { useState } from 'react';

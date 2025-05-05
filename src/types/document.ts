@@ -1,5 +1,6 @@
 // src/types/document.ts
-import { Farm } from './user';
+
+import { Farm, User } from './user';
 
 export interface DocumentType {
     id: number;
@@ -18,7 +19,7 @@ export interface Document {
     nombre_archivo?: string;
     tamano_archivo?: number;
     tipo_mime?: string;
-    estado: string; // 'PENDIENTE' | 'APROBADO' | 'RECHAZADO'
+    estado: 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
     comentario?: string;
     fecha_subida?: string;
     fecha_revision?: string;
@@ -33,7 +34,6 @@ export interface Document {
 }
 
 export interface CreateDocumentRequest {
-    id_finca?: number; // opcional si el usuario es una finca
     id_tipo_documento: number;
     comentario?: string;
 }
@@ -43,14 +43,18 @@ export interface CreateDocumentResponse {
     documento: Document;
 }
 
+export interface UploadDocumentRequest {
+    id_documento: string;
+    file: File;
+}
+
 export interface UploadDocumentResponse {
     message: string;
     documento: Document;
 }
 
-// Actualizando para que coincida con la documentación del API
 export interface ReviewDocumentRequest {
-    id: string; // Corregido: ahora es 'id' en lugar de 'id_documento'
+    id: string; // ID del documento
     estado: 'APROBADO' | 'RECHAZADO';
     comentario?: string;
 }

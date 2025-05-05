@@ -1,3 +1,5 @@
+// src/modules/documents/components/DocumentList.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,15 +11,20 @@ import { Input } from '@/components/ui/input';
 import { documentService } from '../services/documentService';
 import { useToast } from '@/shared/hooks/useToast';
 import { Document } from '@/types/document';
+import { ReviewConfirmDialog } from './ReviewConfirmDialog';
 
 interface DocumentListProps {
     isAdmin?: boolean;
+    farmId?: number;
 }
 
-export function DocumentList({ isAdmin = false }: DocumentListProps) {
+export function DocumentList({ isAdmin = false, farmId }: DocumentListProps) {
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+    const [reviewAction, setReviewAction] = useState<'approve' | 'reject'>('approve');
+    const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -29,7 +36,7 @@ export function DocumentList({ isAdmin = false }: DocumentListProps) {
                 if (isAdmin) {
                     docs = await documentService.getPendingDocuments();
                 } else {
-                    docs = await documentService.getFarmDocuments();
+                    docs = await documentService.getFarmDocuments(farmId);
                 }
 
                 setDocuments(docs);
@@ -45,7 +52,7 @@ export function DocumentList({ isAdmin = false }: DocumentListProps) {
         };
 
         fetchDocuments();
-    }, [isAdmin, toast]);
+    }, [isAdmin, farmId]);
 
     // Filtrar documentos según la búsqueda
     const filteredDocuments = documents.filter(doc =>
@@ -80,14 +87,15 @@ export function DocumentList({ isAdmin = false }: DocumentListProps) {
         });
     };
 
-    // Función para manejar la revisión de documentos
-    const handleReviewDocument = async (documentId: string, estado: 'APROBADO' | 'RECHAZADO') => {
+    const handleReviewConfirm = async (comentario: string) => {
+        if (!selectedDocument) return;
+
         try {
             setLoading(true);
             await documentService.reviewDocument({
-                id: documentId, // Corregido: ahora es 'id' en lugar de 'id_documento'
-                estado,
-                comentario: estado === 'RECHAZADO' ? 'Documento rechazado' : 'Documento aprobado'
+                id: selectedDocument.id,
+                estado: reviewAction === 'approve' ? 'APROBADO' : 'RECHAZADO',
+                comentario
             });
 
             // Recargar los documentos
@@ -95,22 +103,23 @@ export function DocumentList({ isAdmin = false }: DocumentListProps) {
                 const docs = await documentService.getPendingDocuments();
                 setDocuments(docs);
             } else {
-                const docs = await documentService.getFarmDocuments();
+                const docs = await documentService.getFarmDocuments(farmId);
                 setDocuments(docs);
             }
 
             toast(
-                `Documento ${estado === 'APROBADO' ? 'aprobado' : 'rechazado'} exitosamente`,
+                `Documento ${reviewAction === 'approve' ? 'aprobado' : 'rechazado'} exitosamente`,
                 'success'
             );
         } catch (error) {
             toast(
-                `Error al ${estado === 'APROBADO' ? 'aprobar' : 'rechazar'} el documento`,
+                `Error al ${reviewAction === 'approve' ? 'aprobar' : 'rechazar'} el documento`,
                 'error'
             );
             console.error('Error reviewing document:', error);
         } finally {
             setLoading(false);
+            setSelectedDocument(null);
         }
     };
 
@@ -136,12 +145,6 @@ export function DocumentList({ isAdmin = false }: DocumentListProps) {
                             : 'Gestione sus documentos y certificaciones'}
                     </p>
                 </div>
-                {!isAdmin && (
-                    <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Nuevo Documento
-                    </Button>
-                )}
             </div>
 
             {/* Búsqueda y Filtros */}
@@ -236,7 +239,11 @@ export function DocumentList({ isAdmin = false }: DocumentListProps) {
                                                     variant="outline"
                                                     size="sm"
                                                     className="text-green-600 hover:text-green-700"
-                                                    onClick={() => handleReviewDocument(document.id, 'APROBADO')}
+                                                    onClick={() => {
+                                                        setSelectedDocument(document);
+                                                        setReviewAction('approve');
+                                                        setIsReviewDialogOpen(true);
+                                                    }}
                                                     disabled={loading}
                                                 >
                                                     Aprobar
@@ -245,7 +252,11 @@ export function DocumentList({ isAdmin = false }: DocumentListProps) {
                                                     variant="outline"
                                                     size="sm"
                                                     className="text-red-600 hover:text-red-700"
-                                                    onClick={() => handleReviewDocument(document.id, 'RECHAZADO')}
+                                                    onClick={() => {
+                                                        setSelectedDocument(document);
+                                                        setReviewAction('reject');
+                                                        setIsReviewDialogOpen(true);
+                                                    }}
                                                     disabled={loading}
                                                 >
                                                     Rechazar
@@ -256,9 +267,24 @@ export function DocumentList({ isAdmin = false }: DocumentListProps) {
                                 </div>
                             </CardContent>
                         </Card>
+
                     ))
+
                 )}
             </div>
+            {selectedDocument && (
+                <ReviewConfirmDialog
+                    isOpen={isReviewDialogOpen}
+                    onClose={() => {
+                        setIsReviewDialogOpen(false);
+                        setSelectedDocument(null);
+                    }}
+                    onConfirm={handleReviewConfirm}
+                    action={reviewAction}
+                    documentName={selectedDocument.tipoDocumento?.nombre || 'documento'}
+                />
+            )}
         </div>
+
     );
 }

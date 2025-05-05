@@ -1,6 +1,4 @@
-// Este archivo inicialmente contiene un wrapper para usar toast en toda la aplicación
-// Debes instalar los componentes toast de shadcn/ui primero:
-// npx shadcn-ui@latest add toast
+// src/shared/hooks/useToast.ts
 
 import { toast as sonnerToast } from 'sonner';
 
@@ -13,6 +11,8 @@ interface ToastOptions {
         label: string;
         onClick: () => void;
     };
+    description?: string;
+    closeButton?: boolean;
 }
 
 export const useToast = () => {
@@ -21,24 +21,27 @@ export const useToast = () => {
         type: ToastType = 'info',
         options?: ToastOptions
     ) => {
-        const { duration = 5000, ...restOptions } = options || {};
+        const { duration = 5000, description, ...restOptions } = options || {};
 
         switch (type) {
             case 'success':
                 sonnerToast.success(message, {
                     duration,
+                    description,
                     ...restOptions
                 });
                 break;
             case 'error':
                 sonnerToast.error(message, {
                     duration,
+                    description,
                     ...restOptions
                 });
                 break;
             case 'warning':
                 sonnerToast(message, {
                     duration,
+                    description,
                     ...restOptions
                 });
                 break;
@@ -46,6 +49,7 @@ export const useToast = () => {
             default:
                 sonnerToast(message, {
                     duration,
+                    description,
                     ...restOptions
                 });
         }

@@ -1,3 +1,5 @@
+// src/modules/documents/components/UploadDocumentForm.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -69,7 +71,7 @@ export function UploadDocumentForm({ onSuccess }: UploadDocumentFormProps) {
         };
 
         fetchDocumentTypes();
-    }, [toast]);
+    }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
