@@ -1,8 +1,10 @@
 // src/modules/documents/services/documentService.ts
-
 import { apiGet, apiPost, apiPatch, apiUpload } from '@/lib/api';
-import { Document, DocumentType, CreateDocumentRequest, CreateDocumentResponse, DocumentReviewRequest, DocumentReviewResponse } from '@/types/document';
+import { Document, DocumentType, CreateDocumentRequest, DocumentReviewRequest } from '@/types/document';
 
+/**
+ * Servicio para la gestión de documentos
+ */
 export const documentService = {
     /**
      * Obtiene los tipos de documentos disponibles
@@ -35,8 +37,8 @@ export const documentService = {
     /**
      * Crea un nuevo registro de documento
      */
-    createDocument: async (data: CreateDocumentRequest): Promise<CreateDocumentResponse> => {
-        return await apiPost<CreateDocumentResponse>('/documents', data);
+    createDocument: async (data: CreateDocumentRequest): Promise<any> => {
+        return await apiPost<any>('/documents', data);
     },
 
     /**
@@ -68,8 +70,8 @@ export const documentService = {
     /**
      * Revisa un documento (aprobar/rechazar) - solo admin
      */
-    reviewDocument: async (data: DocumentReviewRequest): Promise<DocumentReviewResponse> => {
-        return await apiPost<DocumentReviewResponse>('/documents/review', data);
+    reviewDocument: async (data: DocumentReviewRequest): Promise<any> => {
+        return await apiPost<any>('/documents/review', data);
     },
 
     /**

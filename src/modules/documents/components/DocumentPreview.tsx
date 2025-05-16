@@ -1,13 +1,25 @@
 // src/modules/documents/components/DocumentPreview.tsx
-'use client';
-
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import React from 'react';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Document } from '@/types/document';
 import { formatDate } from '@/shared/utils/formatters';
-import { Download, ExternalLink, Clock, CheckCircle, XCircle, FileText } from 'lucide-react';
+import {
+    Download,
+    ExternalLink,
+    Clock,
+    CheckCircle,
+    XCircle,
+    FileText,
+} from 'lucide-react';
 
 interface DocumentPreviewProps {
     open: boolean;
@@ -15,8 +27,12 @@ interface DocumentPreviewProps {
     document: Document;
 }
 
-export function DocumentPreview({ open, onClose, document }: DocumentPreviewProps) {
-    // Función para obtener el badge según el estado
+export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
+    open,
+    onClose,
+    document,
+}) => {
+    // Obtener badge según el estado
     const getStatusBadge = () => {
         switch (document.estado) {
             case 'PENDIENTE':
@@ -51,8 +67,7 @@ export function DocumentPreview({ open, onClose, document }: DocumentPreviewProp
 
     // Obtener la URL para visualizar el documento
     const getDocumentUrl = () => {
-        // Aquí podrías construir la URL según tu estructura de almacenamiento
-        // Por ejemplo: `${process.env.NEXT_PUBLIC_API_URL}/documents/view/${document.id}`
+        // Aquí se construiría la URL según la estructura de almacenamiento
         return document.ruta_archivo || '#';
     };
 
@@ -156,4 +171,6 @@ export function DocumentPreview({ open, onClose, document }: DocumentPreviewProp
             </DialogContent>
         </Dialog>
     );
-}
+};
+
+export default DocumentPreview;

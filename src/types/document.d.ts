@@ -1,5 +1,8 @@
-// src/types/document.d.ts
+// src/types/document.ts
 
+/**
+ * Representa un tipo de documento
+ */
 export interface DocumentType {
     id: number;
     nombre: string;
@@ -7,6 +10,9 @@ export interface DocumentType {
     es_obligatorio: boolean;
 }
 
+/**
+ * Representa un documento
+ */
 export interface Document {
     id: string;
     id_finca: number;
@@ -33,28 +39,19 @@ export interface Document {
     };
 }
 
+/**
+ * Datos para crear un documento
+ */
 export interface CreateDocumentRequest {
     id_tipo_documento: number;
     comentario?: string;
 }
 
-export interface CreateDocumentResponse {
-    message: string;
-    documento: Document;
-}
-
-export interface UploadDocumentRequest {
-    id_documento: string;
-    file: File;
-}
-
+/**
+ * Datos para revisar un documento
+ */
 export interface DocumentReviewRequest {
     id: string;
     estado: 'APROBADO' | 'RECHAZADO';
     comentario?: string;
-}
-
-export interface DocumentReviewResponse {
-    message: string;
-    documento: Document;
 }

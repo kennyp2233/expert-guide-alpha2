@@ -1,13 +1,14 @@
-// src/modules/master-data/fincas/hooks/useFinca.ts
+// src/modules/fincas/hooks/useFincas.ts
 import { useState, useEffect, useCallback } from 'react';
 import { fincaService } from '../services/fincaService';
 import { useToast } from '@/shared/hooks/useToast';
-import { Farm, FarmValidation, FarmInVerification, FarmDocumentVerification } from '@/types/master-data/farm';
-import { Document } from '@/types/document';
+import { Farm, FarmValidation } from '@/types/master-data/farm';
 import { documentService } from '@/modules/documents/services/documentService';
+import { Document } from '@/types/document';
+import { userService } from '@/modules/users/services/userService';
 
 /**
- * Hook for managing farm data and operations
+ * Hook para gestionar los datos de una finca específica
  */
 export const useFinca = (fincaId?: number) => {
     const [finca, setFinca] = useState<Farm | null>(null);
@@ -16,15 +17,15 @@ export const useFinca = (fincaId?: number) => {
     const [loading, setLoading] = useState(true);
     const { toast } = useToast();
 
-    // Fetch farm data
+    // Cargar datos de finca
     const fetchFinca = useCallback(async (id: number) => {
-        setLoading(true);
         try {
+            setLoading(true);
             const farmData = await fincaService.getFinca(id);
             setFinca(farmData);
             return farmData;
         } catch (error) {
-            toast('Error loading farm data', 'error');
+            toast('Error al cargar los datos de la finca', 'error');
             console.error('Error loading farm data:', error);
             return null;
         } finally {
@@ -32,7 +33,7 @@ export const useFinca = (fincaId?: number) => {
         }
     }, [toast]);
 
-    // Fetch farm validation status
+    // Cargar validación de finca
     const fetchValidation = useCallback(async (id: number) => {
         try {
             const validationData = await fincaService.validateFincaRegistration(id);
@@ -44,7 +45,7 @@ export const useFinca = (fincaId?: number) => {
         }
     }, []);
 
-    // Fetch farm documents
+    // Cargar documentos de finca
     const fetchDocuments = useCallback(async (id: number) => {
         try {
             const docsData = await documentService.getFarmDocuments(id);
@@ -56,7 +57,28 @@ export const useFinca = (fincaId?: number) => {
         }
     }, []);
 
-    // Load initial data if fincaId is provided
+    // Actualizar finca
+    const updateFinca = useCallback(async (id: number, data: Partial<Farm>) => {
+        setLoading(true);
+        try {
+            const updatedFinca = await fincaService.updateFinca(id, data);
+            setFinca(updatedFinca);
+            toast('Datos de la finca actualizados correctamente', 'success');
+
+            // Refrescar validación
+            await fetchValidation(id);
+
+            return updatedFinca;
+        } catch (error) {
+            toast('Error al actualizar datos de la finca', 'error');
+            console.error('Error updating farm:', error);
+            return null;
+        } finally {
+            setLoading(false);
+        }
+    }, [toast, fetchValidation]);
+
+    // Cargar datos iniciales si se proporciona fincaId
     useEffect(() => {
         if (fincaId) {
             const loadData = async () => {
@@ -74,26 +96,12 @@ export const useFinca = (fincaId?: number) => {
         }
     }, [fincaId, fetchFinca, fetchValidation, fetchDocuments]);
 
-    // Update farm data
-    const updateFinca = useCallback(async (id: number, data: Partial<Farm>) => {
-        setLoading(true);
-        try {
-            const updatedFinca = await fincaService.updateFinca(id, data);
-            setFinca(updatedFinca);
-            toast('Farm updated successfully', 'success');
-
-            // Refresh validation after update
-            await fetchValidation(id);
-
-            return updatedFinca;
-        } catch (error) {
-            toast('Error updating farm', 'error');
-            console.error('Error updating farm:', error);
-            return null;
-        } finally {
-            setLoading(false);
-        }
-    }, [toast, fetchValidation]);
+    // Refrescar todos los datos
+    const refreshData = useCallback(async (id: number) => {
+        await fetchFinca(id);
+        await fetchValidation(id);
+        await fetchDocuments(id);
+    }, [fetchFinca, fetchValidation, fetchDocuments]);
 
     return {
         finca,
@@ -104,28 +112,24 @@ export const useFinca = (fincaId?: number) => {
         fetchValidation,
         fetchDocuments,
         updateFinca,
-        refreshData: useCallback(async (id: number) => {
-            await fetchFinca(id);
-            await fetchValidation(id);
-            await fetchDocuments(id);
-        }, [fetchFinca, fetchValidation, fetchDocuments])
+        refreshData
     };
 };
 
 /**
- * Hook for farm verification by admin
+ * Hook para gestión de verificación de fincas (admin)
  */
-export const useFarmVerification = () => {
-    const [farms, setFarms] = useState<FarmInVerification[]>([]);
+export const useFincasVerification = () => {
+    const [farms, setFarms] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedFarm, setSelectedFarm] = useState<FarmInVerification | null>(null);
-    const [farmDocuments, setFarmDocuments] = useState<Document[]>([]);
-    const [verification, setVerification] = useState<FarmDocumentVerification | null>(null);
     const [filter, setFilter] = useState('all');
+    const [search, setSearch] = useState('');
+    const [selectedFarm, setSelectedFarm] = useState<any | null>(null);
+    const [verificationModalOpen, setVerificationModalOpen] = useState(false);
     const { toast } = useToast();
 
-    // Fetch farms in verification
-    const fetchFarmsInVerification = useCallback(async () => {
+    // Cargar fincas en verificación
+    const fetchFarms = useCallback(async () => {
         setLoading(true);
         try {
             const params: { con_documentos?: boolean; estado_documentos?: string } = {};
@@ -144,62 +148,88 @@ export const useFarmVerification = () => {
             setFarms(result.fincas);
             return result.fincas;
         } catch (error) {
-            toast('Error loading farms in verification', 'error');
+            toast('Error al cargar fincas en verificación', 'error');
             console.error('Error loading farms:', error);
             return [];
         } finally {
             setLoading(false);
         }
-    }, [filter, toast]);
+    }, [filter]);
 
-    // Load farms when filter changes
+    // Cargar fincas cuando cambia el filtro
     useEffect(() => {
-        fetchFarmsInVerification();
-    }, [fetchFarmsInVerification]);
+        fetchFarms();
+    }, [fetchFarms]);
 
-    // Fetch farm verification data
-    const fetchFarmVerification = useCallback(async (farmId: number) => {
-        try {
-            const [documents, verificationData] = await Promise.all([
-                documentService.getFarmDocuments(farmId),
-                fincaService.verifyFincaDocuments(farmId)
-            ]);
+    // Filtrar fincas por búsqueda
+    const filteredFarms = farms.filter(farm => {
+        const searchTerm = search.toLowerCase().trim();
+        if (!searchTerm) return true;
 
-            setFarmDocuments(documents);
-            setVerification(verificationData);
+        return (
+            farm.finca.nombre_finca?.toLowerCase().includes(searchTerm) ||
+            farm.finca.tag?.toLowerCase().includes(searchTerm) ||
+            farm.finca.ruc_finca?.toLowerCase().includes(searchTerm) ||
+            farm.usuario.usuario?.toLowerCase().includes(searchTerm) ||
+            farm.usuario.email?.toLowerCase().includes(searchTerm)
+        );
+    });
 
-            return { documents, verification: verificationData };
-        } catch (error) {
-            toast('Error loading verification data', 'error');
-            console.error('Error loading verification data:', error);
-            return null;
-        }
-    }, [toast]);
-
-    // Select a farm for verification
-    const selectFarm = useCallback(async (farm: FarmInVerification) => {
+    // Abrir modal de verificación
+    const openVerificationModal = useCallback((farm: any) => {
         setSelectedFarm(farm);
-        await fetchFarmVerification(farm.finca.id);
-    }, [fetchFarmVerification]);
-
-    // Clear selected farm
-    const clearSelectedFarm = useCallback(() => {
-        setSelectedFarm(null);
-        setFarmDocuments([]);
-        setVerification(null);
+        setVerificationModalOpen(true);
     }, []);
 
+    // Cerrar modal de verificación
+    const closeVerificationModal = useCallback(() => {
+        setVerificationModalOpen(false);
+        setSelectedFarm(null);
+    }, []);
+
+    // Aprobar rol de finca
+    const approveRole = useCallback(async (userId: string, roleId: number) => {
+        try {
+            await userService.approveUserRole(userId, roleId);
+            toast('Rol de finca aprobado correctamente', 'success');
+            await fetchFarms();
+            closeVerificationModal();
+            return true;
+        } catch (error) {
+            toast('Error al aprobar el rol de finca', 'error');
+            console.error('Error approving role:', error);
+            return false;
+        }
+    }, [closeVerificationModal, fetchFarms, toast]);
+
+    // Rechazar rol de finca
+    const rejectRole = useCallback(async (userId: string, roleId: number) => {
+        try {
+            await userService.rejectUserRole(userId, roleId);
+            toast('Rol de finca rechazado', 'success');
+            await fetchFarms();
+            closeVerificationModal();
+            return true;
+        } catch (error) {
+            toast('Error al rechazar el rol de finca', 'error');
+            console.error('Error rejecting role:', error);
+            return false;
+        }
+    }, [closeVerificationModal, fetchFarms, toast]);
+
     return {
-        farms,
+        farms: filteredFarms,
         loading,
-        selectedFarm,
-        farmDocuments,
-        verification,
+        search,
+        setSearch,
         filter,
         setFilter,
-        fetchFarmsInVerification,
-        fetchFarmVerification,
-        selectFarm,
-        clearSelectedFarm
+        selectedFarm,
+        verificationModalOpen,
+        fetchFarms,
+        openVerificationModal,
+        closeVerificationModal,
+        approveRole,
+        rejectRole
     };
 };

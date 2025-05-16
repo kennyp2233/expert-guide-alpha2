@@ -9,70 +9,40 @@ interface UseDocumentsProps {
     readOnly?: boolean;
 }
 
+/**
+ * Hook para gestionar documentos de una finca
+ */
 export const useDocuments = ({ fincaId, readOnly = false }: UseDocumentsProps = {}) => {
     const [documents, setDocuments] = useState<Document[]>([]);
     const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedTab, setSelectedTab] = useState('all');
-
-    // For modals
-    const [uploadModalOpen, setUploadModalOpen] = useState(false);
-    const [selectedDocumentTypeId, setSelectedDocumentTypeId] = useState<number | null>(null);
     const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-    const [previewModalOpen, setPreviewModalOpen] = useState(false);
-    const [updateMode, setUpdateMode] = useState(false);
+    const [previewOpen, setPreviewOpen] = useState(false);
+    const [uploadOpen, setUploadOpen] = useState(false);
+    const [selectedTypeId, setSelectedTypeId] = useState<number | null>(null);
+    const [isUpdateMode, setIsUpdateMode] = useState(false);
 
     const { toast } = useToast();
 
-    // Calculate document statistics
-    const calculateStats = useCallback(() => {
-        return {
-            total: documentTypes.length,
-            uploaded: documents.length,
-            approved: documents.filter(d => d.estado === 'APROBADO').length,
-            rejected: documents.filter(d => d.estado === 'RECHAZADO').length,
-            pending: documents.filter(d => d.estado === 'PENDIENTE').length,
-            required: documentTypes.filter(t => t.es_obligatorio).length,
-            progress: documentTypes.length > 0
-                ? Math.round((documents.length / documentTypes.length) * 100)
-                : 0,
-            completionProgress: documentTypes.length > 0
-                ? Math.round((documents.filter(d => d.estado === 'APROBADO').length / documentTypes.length) * 100)
-                : 0
-        };
-    }, [documents, documentTypes]);
+    // Calcular estadísticas de documentos
+    const stats = {
+        total: documentTypes.length,
+        uploaded: documents.length,
+        approved: documents.filter(d => d.estado === 'APROBADO').length,
+        rejected: documents.filter(d => d.estado === 'RECHAZADO').length,
+        pending: documents.filter(d => d.estado === 'PENDIENTE').length,
+        required: documentTypes.filter(t => t.es_obligatorio).length,
+        progress: documentTypes.length > 0
+            ? Math.round((documents.length / documentTypes.length) * 100)
+            : 0,
+        completionProgress: documentTypes.length > 0
+            ? Math.round((documents.filter(d => d.estado === 'APROBADO').length / documentTypes.length) * 100)
+            : 0
+    };
 
-    // Fetch documents and document types
-    const fetchData = useCallback(async () => {
-        setLoading(true);
-        try {
-            // Load document types
-            const typesData = await documentService.getDocumentTypes();
-            setDocumentTypes(typesData);
-
-            // Load documents
-            let docsData: Document[];
-            if (readOnly && fincaId) {
-                docsData = await documentService.getFarmDocuments(fincaId);
-            } else {
-                docsData = await documentService.getMyDocuments();
-            }
-            setDocuments(docsData);
-        } catch (error) {
-            toast('Error loading documents', 'error');
-            console.error('Error loading documents:', error);
-        } finally {
-            setLoading(false);
-        }
-    }, [fincaId, readOnly, toast]);
-
-    // Initial data load
-    useEffect(() => {
-        fetchData();
-    }, [fetchData]);
-
-    // Filter documents based on selected tab
-    const getFilteredDocuments = useCallback(() => {
+    // Obtener documentos según la pestaña seleccionada
+    const filteredDocuments = useCallback(() => {
         switch (selectedTab) {
             case 'pending':
                 return documents.filter(d => d.estado === 'PENDIENTE');
@@ -85,38 +55,98 @@ export const useDocuments = ({ fincaId, readOnly = false }: UseDocumentsProps = 
         }
     }, [documents, selectedTab]);
 
-    // Handle document upload
-    const handleUploadClick = useCallback((documentTypeId: number) => {
-        setSelectedDocumentTypeId(documentTypeId);
-        setUpdateMode(false);
-        setUploadModalOpen(true);
-    }, []);
+    // Cargar datos de documentos
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        try {
+            // Cargar tipos de documentos
+            const typesData = await documentService.getDocumentTypes();
+            setDocumentTypes(typesData);
 
-    // Handle document view
-    const handleViewDocument = useCallback((document: Document) => {
-        setSelectedDocument(document);
-        setPreviewModalOpen(true);
-    }, []);
+            // Cargar documentos
+            let docsData: Document[];
+            if (readOnly && fincaId) {
+                docsData = await documentService.getFarmDocuments(fincaId);
+            } else {
+                docsData = await documentService.getMyDocuments();
+            }
+            setDocuments(docsData);
+        } catch (error) {
+            toast('Error al cargar los documentos', 'error');
+            console.error('Error loading documents:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [fincaId, readOnly, toast]);
 
-    // Handle document update
-    const handleUpdateDocument = useCallback((document: Document) => {
-        setSelectedDocument(document);
-        setUpdateMode(true);
-        setUploadModalOpen(true);
-    }, []);
-
-    // Handle upload success
-    const handleDocumentUpload = useCallback(async () => {
-        // Refresh documents
-        await fetchData();
-
-        // Close modal
-        setUploadModalOpen(false);
-        setSelectedDocumentTypeId(null);
-        setSelectedDocument(null);
+    // Cargar datos iniciales
+    useEffect(() => {
+        fetchData();
     }, [fetchData]);
 
-    // Handle document review (approve/reject)
+    // Abrir modal para subir un documento
+    const openUploadModal = useCallback((typeId: number) => {
+        setSelectedTypeId(typeId);
+        setIsUpdateMode(false);
+        setUploadOpen(true);
+    }, []);
+
+    // Abrir modal para actualizar un documento
+    const openUpdateModal = useCallback((document: Document) => {
+        setSelectedDocument(document);
+        setSelectedTypeId(document.id_tipo_documento);
+        setIsUpdateMode(true);
+        setUploadOpen(true);
+    }, []);
+
+    // Abrir modal de previsualización
+    const openPreviewModal = useCallback((document: Document) => {
+        setSelectedDocument(document);
+        setPreviewOpen(true);
+    }, []);
+
+    // Cerrar modales
+    const closeUploadModal = useCallback(() => {
+        setUploadOpen(false);
+        setSelectedTypeId(null);
+        setSelectedDocument(null);
+        setIsUpdateMode(false);
+    }, []);
+
+    const closePreviewModal = useCallback(() => {
+        setPreviewOpen(false);
+        setSelectedDocument(null);
+    }, []);
+
+    // Manejar subida/actualización de documentos
+    const handleDocumentUpload = useCallback(async (values: any, file: File) => {
+        try {
+            if (isUpdateMode && selectedDocument) {
+                // Actualizar documento existente
+                await documentService.updateDocument(selectedDocument.id, file, values.comentario);
+                toast('Documento actualizado correctamente', 'success');
+            } else if (selectedTypeId) {
+                // Crear nuevo documento
+                const createResponse = await documentService.createDocument({
+                    id_tipo_documento: selectedTypeId,
+                    comentario: values.comentario
+                });
+                await documentService.uploadDocumentFile(createResponse.documento.id, file);
+                toast('Documento subido correctamente', 'success');
+            }
+
+            // Recargar documentos
+            await fetchData();
+            closeUploadModal();
+        } catch (error) {
+            toast('Error al procesar el documento', 'error');
+            console.error('Error uploading document:', error);
+            return false;
+        }
+        return true;
+    }, [isUpdateMode, selectedDocument, selectedTypeId, toast, fetchData, closeUploadModal]);
+
+    // Manejar revisión de documentos (aprobar/rechazar)
     const handleDocumentReview = useCallback(async (document: Document, approved: boolean, comentario?: string) => {
         try {
             await documentService.reviewDocument({
@@ -126,55 +156,43 @@ export const useDocuments = ({ fincaId, readOnly = false }: UseDocumentsProps = 
             });
 
             toast(
-                approved ? 'Document approved successfully' : 'Document rejected successfully',
+                approved ? 'Documento aprobado correctamente' : 'Documento rechazado correctamente',
                 'success'
             );
 
-            // Reload documents
+            // Recargar documentos
             await fetchData();
+            return true;
         } catch (error) {
-            toast('Error processing document', 'error');
+            toast('Error al procesar el documento', 'error');
             console.error('Error reviewing document:', error);
+            return false;
         }
     }, [fetchData, toast]);
 
-    // Close modals
-    const closeUploadModal = useCallback(() => {
-        setUploadModalOpen(false);
-        setSelectedDocumentTypeId(null);
-        setSelectedDocument(null);
-    }, []);
-
-    const closePreviewModal = useCallback(() => {
-        setPreviewModalOpen(false);
-        setSelectedDocument(null);
-    }, []);
-
     return {
-        // Data
+        // Estado
         documents,
         documentTypes,
         loading,
         selectedTab,
-        stats: calculateStats(),
-        filteredDocuments: getFilteredDocuments(),
-
-        // Modal states
-        uploadModalOpen,
-        selectedDocumentTypeId,
         selectedDocument,
-        previewModalOpen,
-        updateMode,
+        previewOpen,
+        uploadOpen,
+        selectedTypeId,
+        isUpdateMode,
+        stats,
+        filteredDocuments: filteredDocuments(),
 
-        // Actions
+        // Acciones
         setSelectedTab,
-        handleUploadClick,
-        handleViewDocument,
-        handleUpdateDocument,
-        handleDocumentUpload,
-        handleDocumentReview,
+        openUploadModal,
+        openUpdateModal,
+        openPreviewModal,
         closeUploadModal,
         closePreviewModal,
+        handleDocumentUpload,
+        handleDocumentReview,
         refreshData: fetchData
     };
 };

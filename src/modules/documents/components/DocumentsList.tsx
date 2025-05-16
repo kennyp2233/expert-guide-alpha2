@@ -1,121 +1,56 @@
-// src/modules/fincas/components/DocumentsList.tsx
-'use client';
-
-import { useEffect, useState } from 'react';
+// src/modules/documents/components/DocumentList.tsx
+import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
-import { DocumentItem } from '@/modules/documents/components/DocumentItem';
-import { DocumentUploadModal } from './DocumentUploadModal';
+import { DocumentItem } from './DocumentItem';
+import { DocumentUploadForm } from './DocumentUploadForm';
 import { DocumentPreview } from './DocumentPreview';
-import { documentService } from '@/modules/documents/services/documentService';
-import { Document, DocumentType } from '@/types/document';
-import { useToast } from '@/shared/hooks/useToast';
-import { AlertCircle, CheckCircle, Upload, Loader2 } from 'lucide-react';
+import { useDocuments } from '../hooks/useDocuments';
+import { AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 
-interface DocumentsListProps {
-    fincaId: number;
+interface DocumentListProps {
+    fincaId?: number;
     onUpdate?: () => void;
     readOnly?: boolean;
 }
 
-export function DocumentsList({ fincaId, onUpdate, readOnly = false }: DocumentsListProps) {
-    const [documents, setDocuments] = useState<Document[]>([]);
-    const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedTab, setSelectedTab] = useState('all');
+export const DocumentList: React.FC<DocumentListProps> = ({
+    fincaId,
+    onUpdate,
+    readOnly = false
+}) => {
+    const {
+        documents,
+        documentTypes,
+        loading,
+        selectedTab,
+        selectedDocument,
+        previewOpen,
+        uploadOpen,
+        selectedTypeId,
+        isUpdateMode,
+        stats,
+        filteredDocuments,
 
-    // Estado para modales
-    const [uploadModalOpen, setUploadModalOpen] = useState(false);
-    const [selectedDocumentTypeId, setSelectedDocumentTypeId] = useState<number | null>(null);
-    const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
-    const [previewModalOpen, setPreviewModalOpen] = useState(false);
-    const [updateMode, setUpdateMode] = useState(false);
+        setSelectedTab,
+        openUploadModal,
+        openUpdateModal,
+        openPreviewModal,
+        closeUploadModal,
+        closePreviewModal,
+        handleDocumentUpload,
+        refreshData
+    } = useDocuments({ fincaId, readOnly });
 
-    const { toast } = useToast();
-
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            // Cargar tipos de documentos
-            const typesData = await documentService.getDocumentTypes();
-            setDocumentTypes(typesData);
-
-            // Cargar documentos de la finca
-            const docsData = readOnly
-                ? await documentService.getFarmDocuments(fincaId)
-                : await documentService.getMyDocuments();
-            setDocuments(docsData);
-        } catch (error) {
-            toast('Error al cargar los documentos', 'error');
-            console.error('Error loading documents:', error);
-        } finally {
-            setLoading(false);
+    // Cuando se completa la subida/actualización, notificar al componente padre
+    const handleUploadSuccess = async (values: any, file: File) => {
+        const success = await handleDocumentUpload(values, file);
+        if (success && onUpdate) {
+            onUpdate();
         }
-    };
-
-    useEffect(() => {
-        fetchData();
-    }, [fincaId, readOnly]);
-
-    // Obtener estadísticas de documentos
-    const stats = {
-        total: documentTypes.length,
-        uploaded: documents.length,
-        approved: documents.filter(d => d.estado === 'APROBADO').length,
-        rejected: documents.filter(d => d.estado === 'RECHAZADO').length,
-        pending: documents.filter(d => d.estado === 'PENDIENTE').length,
-        required: documentTypes.filter(t => t.es_obligatorio).length,
-        progress: documentTypes.length > 0
-            ? Math.round((documents.length / documentTypes.length) * 100)
-            : 0,
-        completionProgress: documentTypes.length > 0
-            ? Math.round((documents.filter(d => d.estado === 'APROBADO').length / documentTypes.length) * 100)
-            : 0
-    };
-
-    // Filtrar documentos según la pestaña seleccionada
-    const getFilteredDocuments = () => {
-        switch (selectedTab) {
-            case 'pending':
-                return documents.filter(d => d.estado === 'PENDIENTE');
-            case 'approved':
-                return documents.filter(d => d.estado === 'APROBADO');
-            case 'rejected':
-                return documents.filter(d => d.estado === 'RECHAZADO');
-            default:
-                return documents;
-        }
-    };
-
-    const handleUploadClick = (documentTypeId: number) => {
-        setSelectedDocumentTypeId(documentTypeId);
-        setUpdateMode(false);
-        setUploadModalOpen(true);
-    };
-
-    const handleViewDocument = (document: Document) => {
-        setSelectedDocument(document);
-        setPreviewModalOpen(true);
-    };
-
-    const handleUpdateDocument = (document: Document) => {
-        setSelectedDocument(document);
-        setUpdateMode(true);
-        setUploadModalOpen(true);
-    };
-
-    const handleDocumentUpload = async () => {
-        // Refrescar documentos después de subir o actualizar
-        await fetchData();
-        if (onUpdate) onUpdate();
-
-        // Cerrar el modal
-        setUploadModalOpen(false);
-        setSelectedDocumentTypeId(null);
-        setSelectedDocument(null);
+        return success;
     };
 
     return (
@@ -190,7 +125,7 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
             )}
 
             {/* Tabs para filtrar documentos */}
-            <Tabs defaultValue="all" onValueChange={setSelectedTab}>
+            <Tabs defaultValue="all" value={selectedTab} onValueChange={setSelectedTab}>
                 <TabsList className="mb-4">
                     <TabsTrigger value="all">
                         Todos ({documents.length})
@@ -223,9 +158,9 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
                                         key={type.id}
                                         document={doc}
                                         documentType={type}
-                                        onUpload={handleUploadClick}
-                                        onView={handleViewDocument}
-                                        onUpdate={handleUpdateDocument}
+                                        onUpload={openUploadModal}
+                                        onView={openPreviewModal}
+                                        onUpdate={openUpdateModal}
                                         readOnly={readOnly}
                                     />
                                 );
@@ -235,7 +170,7 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
                 </TabsContent>
 
                 <TabsContent value="pending" className="mt-0">
-                    {getFilteredDocuments().length === 0 ? (
+                    {filteredDocuments.length === 0 ? (
                         <Card>
                             <CardContent className="py-8 text-center">
                                 <p className="text-muted-foreground">No hay documentos en revisión</p>
@@ -243,7 +178,7 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
                         </Card>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {getFilteredDocuments().map(doc => {
+                            {filteredDocuments.map(doc => {
                                 const type = documentTypes.find(t => t.id === doc.id_tipo_documento);
                                 if (!type) return null;
                                 return (
@@ -251,9 +186,9 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
                                         key={doc.id}
                                         document={doc}
                                         documentType={type}
-                                        onUpload={handleUploadClick}
-                                        onView={handleViewDocument}
-                                        onUpdate={handleUpdateDocument}
+                                        onUpload={openUploadModal}
+                                        onView={openPreviewModal}
+                                        onUpdate={openUpdateModal}
                                         readOnly={readOnly}
                                     />
                                 );
@@ -263,7 +198,7 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
                 </TabsContent>
 
                 <TabsContent value="approved" className="mt-0">
-                    {getFilteredDocuments().length === 0 ? (
+                    {filteredDocuments.length === 0 ? (
                         <Card>
                             <CardContent className="py-8 text-center">
                                 <p className="text-muted-foreground">No hay documentos aprobados</p>
@@ -271,7 +206,7 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
                         </Card>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {getFilteredDocuments().map(doc => {
+                            {filteredDocuments.map(doc => {
                                 const type = documentTypes.find(t => t.id === doc.id_tipo_documento);
                                 if (!type) return null;
                                 return (
@@ -279,9 +214,9 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
                                         key={doc.id}
                                         document={doc}
                                         documentType={type}
-                                        onUpload={handleUploadClick}
-                                        onView={handleViewDocument}
-                                        onUpdate={handleUpdateDocument}
+                                        onUpload={openUploadModal}
+                                        onView={openPreviewModal}
+                                        onUpdate={openUpdateModal}
                                         readOnly={readOnly}
                                     />
                                 );
@@ -291,7 +226,7 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
                 </TabsContent>
 
                 <TabsContent value="rejected" className="mt-0">
-                    {getFilteredDocuments().length === 0 ? (
+                    {filteredDocuments.length === 0 ? (
                         <Card>
                             <CardContent className="py-8 text-center">
                                 <p className="text-muted-foreground">No hay documentos rechazados</p>
@@ -299,7 +234,7 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
                         </Card>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {getFilteredDocuments().map(doc => {
+                            {filteredDocuments.map(doc => {
                                 const type = documentTypes.find(t => t.id === doc.id_tipo_documento);
                                 if (!type) return null;
                                 return (
@@ -307,9 +242,9 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
                                         key={doc.id}
                                         document={doc}
                                         documentType={type}
-                                        onUpload={handleUploadClick}
-                                        onView={handleViewDocument}
-                                        onUpdate={handleUpdateDocument}
+                                        onUpload={openUploadModal}
+                                        onView={openPreviewModal}
+                                        onUpdate={openUpdateModal}
                                         readOnly={readOnly}
                                     />
                                 );
@@ -320,33 +255,28 @@ export function DocumentsList({ fincaId, onUpdate, readOnly = false }: Documents
             </Tabs>
 
             {/* Modal para subir/actualizar documentos */}
-            {uploadModalOpen && (
-                <DocumentUploadModal
-                    open={uploadModalOpen}
-                    onClose={() => {
-                        setUploadModalOpen(false);
-                        setSelectedDocumentTypeId(null);
-                        setSelectedDocument(null);
-                    }}
-                    documentTypeId={selectedDocumentTypeId}
+            {uploadOpen && (
+                <DocumentUploadForm
+                    open={uploadOpen}
+                    onClose={closeUploadModal}
+                    documentTypeId={selectedTypeId}
                     document={selectedDocument}
-                    isUpdate={updateMode}
-                    onUploadSuccess={handleDocumentUpload}
+                    isUpdate={isUpdateMode}
+                    onSubmit={handleUploadSuccess}
                     documentTypes={documentTypes}
                 />
             )}
 
             {/* Modal para previsualizar documentos */}
-            {previewModalOpen && selectedDocument && (
+            {previewOpen && selectedDocument && (
                 <DocumentPreview
-                    open={previewModalOpen}
-                    onClose={() => {
-                        setPreviewModalOpen(false);
-                        setSelectedDocument(null);
-                    }}
+                    open={previewOpen}
+                    onClose={closePreviewModal}
                     document={selectedDocument}
                 />
             )}
         </div>
     );
-}
+};
+
+export default DocumentList;

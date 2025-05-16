@@ -1,17 +1,16 @@
 // src/modules/documents/components/DocumentItem.tsx
-'use client';
-
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
     Card,
     CardContent,
-    CardDescription,
     CardFooter,
     CardHeader,
     CardTitle
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { DocumentType, Document } from '@/types/document';
+import { formatDate } from '@/shared/utils/formatters';
 import {
     FileText,
     Upload,
@@ -22,8 +21,6 @@ import {
     CheckCircle,
     XCircle
 } from 'lucide-react';
-import { Document, DocumentType } from '@/types/document';
-import { formatDate } from '@/shared/utils/formatters';
 
 interface DocumentItemProps {
     document?: Document;
@@ -34,16 +31,17 @@ interface DocumentItemProps {
     readOnly?: boolean;
 }
 
-export function DocumentItem({
+export const DocumentItem: React.FC<DocumentItemProps> = ({
     document,
     documentType,
     onUpload,
     onView,
     onUpdate,
     readOnly = false
-}: DocumentItemProps) {
+}) => {
     const [isHovering, setIsHovering] = useState(false);
 
+    // Obtener badge de estado
     const getStatusBadge = () => {
         if (!document) {
             return (
@@ -99,12 +97,14 @@ export function DocumentItem({
                     </CardTitle>
                     {getStatusBadge()}
                 </div>
-                <CardDescription>
-                    {documentType.descripcion}
-                    {documentType.es_obligatorio && (
-                        <span className="ml-1 text-red-500">*</span>
-                    )}
-                </CardDescription>
+                {documentType.descripcion && (
+                    <p className="text-sm text-muted-foreground">
+                        {documentType.descripcion}
+                        {documentType.es_obligatorio && (
+                            <span className="ml-1 text-red-500">*</span>
+                        )}
+                    </p>
+                )}
             </CardHeader>
 
             <CardContent>
@@ -114,7 +114,7 @@ export function DocumentItem({
                             {document.nombre_archivo && (
                                 <div>
                                     <p className="text-sm text-muted-foreground">Nombre del archivo:</p>
-                                    <p className="font-medium">{document.nombre_archivo}</p>
+                                    <p className="font-medium truncate">{document.nombre_archivo}</p>
                                 </div>
                             )}
 
@@ -194,4 +194,6 @@ export function DocumentItem({
             </CardFooter>
         </Card>
     );
-}
+};
+
+export default DocumentItem;
