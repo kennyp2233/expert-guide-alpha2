@@ -3,7 +3,7 @@ import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
 
 // Creamos una instancia base de axios con la configuración común
 const api: AxiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api',
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
     headers: {
         'Content-Type': 'application/json',
     },
