@@ -1,5 +1,8 @@
-// src/types/farm.d.ts
+// src/types/master-data/farm.d.ts
 
+/**
+ * Base farm entity
+ */
 export interface Farm {
     id: number;
     nombre_finca: string;
@@ -7,6 +10,8 @@ export interface Farm {
     ruc_finca: string;
     tipo_documento?: string;
     genera_guias_certificadas?: boolean;
+
+    // Contact information
     i_general_telefono?: string;
     i_general_email?: string;
     i_general_ciudad?: string;
@@ -14,14 +19,21 @@ export interface Farm {
     i_general_pais?: string;
     i_general_cod_sesa?: string;
     i_general_cod_pais?: string;
+
+    // Additional information
     a_nombre?: string;
     a_codigo?: string;
     a_direccion?: string;
+
+    // Status
     activo: boolean;
     createdAt?: string;
     updatedAt?: string;
 }
 
+/**
+ * Result of farm validation check
+ */
 export interface FarmValidation {
     registroCompleto: boolean;
     camposFaltantes: string[];
@@ -29,6 +41,9 @@ export interface FarmValidation {
     mensaje: string;
 }
 
+/**
+ * Farm with verification progress information
+ */
 export interface FarmWithVerificationProgress extends Farm {
     progreso_verificacion: {
         total_documentos_requeridos: number;
@@ -40,6 +55,9 @@ export interface FarmWithVerificationProgress extends Farm {
     };
 }
 
+/**
+ * Farm with associated user in verification process
+ */
 export interface FarmInVerification {
     finca: FarmWithVerificationProgress;
     usuario: {
@@ -59,9 +77,22 @@ export interface FarmInVerification {
     };
 }
 
+/**
+ * Result of farm document verification
+ */
 export interface FarmDocumentVerification {
     finca_id: number;
     documentos_completos: boolean;
-    tipos_pendientes: DocumentType[];
-    documentos_aprobados: Document[];
+    tipos_pendientes: Array<{
+        id: number;
+        nombre: string;
+        descripcion: string;
+        es_obligatorio: boolean;
+    }>;
+    documentos_aprobados: Array<{
+        id: string;
+        id_tipo_documento: number;
+        estado: string;
+        fecha_revision?: string;
+    }>;
 }

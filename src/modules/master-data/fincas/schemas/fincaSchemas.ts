@@ -1,23 +1,107 @@
-// src/modules/fincas/schemas/fincaSchemas.ts
+// src/modules/master-data/fincas/schemas/fincaSchemas.ts
+import * as Yup from 'yup';
 
-import * as z from 'zod';
+/**
+ * Schema for farm data form validation
+ */
+export const fincaFormSchema = Yup.object({
+    nombre_finca: Yup.string()
+        .required('Farm name is required')
+        .min(3, 'Farm name must have at least 3 characters'),
 
-export const fincaFormSchema = z.object({
-    nombre_finca: z.string().min(3, 'El nombre de la finca debe tener al menos 3 caracteres'),
-    tag: z.string().min(1, 'El código identificador es requerido'),
-    ruc_finca: z.string().min(10, 'El RUC debe tener al menos 10 dígitos'),
-    tipo_documento: z.string().optional(),
-    genera_guias_certificadas: z.boolean().optional(),
-    i_general_telefono: z.string().min(7, 'El teléfono debe tener al menos 7 dígitos').optional(),
-    i_general_email: z.string().email('Email inválido').optional(),
-    i_general_ciudad: z.string().min(2, 'La ciudad debe tener al menos 2 caracteres').optional(),
-    i_general_provincia: z.string().min(2, 'La provincia debe tener al menos 2 caracteres').optional(),
-    i_general_pais: z.string().min(2, 'El país debe tener al menos 2 caracteres').optional(),
-    i_general_cod_sesa: z.string().optional(),
-    i_general_cod_pais: z.string().optional(),
-    a_nombre: z.string().optional(),
-    a_codigo: z.string().optional(),
-    a_direccion: z.string().optional(),
+    tag: Yup.string()
+        .required('Tag/identifier is required')
+        .min(1, 'Tag is required'),
+
+    ruc_finca: Yup.string()
+        .required('RUC is required')
+        .min(10, 'RUC must have at least 10 digits'),
+
+    tipo_documento: Yup.string()
+        .optional(),
+
+    genera_guias_certificadas: Yup.boolean()
+        .optional(),
+
+    // Contact information
+    i_general_telefono: Yup.string()
+        .min(7, 'Phone number must have at least 7 digits')
+        .optional(),
+
+    i_general_email: Yup.string()
+        .email('Invalid email format')
+        .optional(),
+
+    i_general_ciudad: Yup.string()
+        .min(2, 'City must have at least 2 characters')
+        .optional(),
+
+    i_general_provincia: Yup.string()
+        .min(2, 'Province must have at least 2 characters')
+        .optional(),
+
+    i_general_pais: Yup.string()
+        .min(2, 'Country must have at least 2 characters')
+        .optional(),
+
+    i_general_cod_sesa: Yup.string()
+        .optional(),
+
+    i_general_cod_pais: Yup.string()
+        .optional(),
+
+    // Additional information
+    a_nombre: Yup.string()
+        .optional(),
+
+    a_codigo: Yup.string()
+        .optional(),
+
+    a_direccion: Yup.string()
+        .optional()
 });
 
-export type FincaFormValues = z.infer<typeof fincaFormSchema>;
+export type FincaFormValues = Yup.InferType<typeof fincaFormSchema>;
+
+/**
+ * Schema for document upload form validation
+ */
+export const documentUploadSchema = Yup.object({
+    file: Yup.mixed()
+        .required('File is required')
+        .test('fileSize', 'File is too large', (value: any) => {
+            return value && value.size <= 5000000; // 5MB limit
+        })
+        .test('fileType', 'Unsupported file type', (value: any) => {
+            return value && [
+                'application/pdf',
+                'image/jpeg',
+                'image/png',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ].includes(value.type);
+        }),
+
+    comentario: Yup.string()
+        .optional()
+});
+
+export type DocumentUploadValues = Yup.InferType<typeof documentUploadSchema>;
+
+/**
+ * Schema for document review form validation
+ */
+export const documentReviewSchema = Yup.object({
+    comentario: Yup.string()
+        .when('estado', {
+            is: 'RECHAZADO',
+            then: (schema) => schema.required('A reason for rejection is required'),
+            otherwise: (schema) => schema.optional()
+        }),
+
+    estado: Yup.string()
+        .required('Status is required')
+        .oneOf(['APROBADO', 'RECHAZADO'], 'Invalid status')
+});
+
+export type DocumentReviewValues = Yup.InferType<typeof documentReviewSchema>;
